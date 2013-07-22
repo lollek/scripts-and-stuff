@@ -1,48 +1,45 @@
-#! /usr/bin/env scala
-!#
+object fibonacci {
 
-import java.io.EOFException
+  def main(argv:Array[String]) {
 
-def fib (rot:Int) : Unit = {
+    // If there are no arguments: print 20 fibs:
+    if (argv.length == 0) {
+      for (i <- 0 until 10) {
+        println(fib(i) + "\t" + fib(i+10))
+      }
+    } 
 
-  var tmp = 0
-  var old_value = 1
-  var new_value = 0
+    // Otherwise, fib the argument:
+    else
+      println(fib(argv(0).toInt))
 
-  for (i <- 0 until rot) {
-    tmp = old_value
-    old_value = new_value
-    new_value = tmp + old_value
   }
 
-  print(new_value)
-}
+  def fib (rot:Int) : Int = {
 
+    var tmp = 0
+    var old_value = 1
+    var new_value = 0
+    
+    for (i <- 0 until rot) {
+      tmp = old_value
+      old_value = new_value
+      new_value = tmp + old_value
+    }
 
-/* If no arguments: print 20 fibs: */
-if (args.length == 0) {
-  for(i <- 1 to 10) {
-    fib(i)
-    print("\t")
-    fib(i + 10)
-    println
+    return new_value
   }
-} 
 
-/* Otherwise we'll fib argv[1] */
-else {
-  fib(args(0).toInt)
-  println
 }
 
 /* TAIL INFO
  * Name: Fibonacci Sequence
  * Language: Scala
+ * Compile: scalac fibonacci.scala
  * State: Done
  *
  * Prints out numbers from the fibonacci sequence
  *
- * Example: ./fibonacci.scala
- * Example2: ./fibonacci.scala 42
- * 
+ * Example: scala fibonacci
+ * Example2: scala fibonacci 42
 */

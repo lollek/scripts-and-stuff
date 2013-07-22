@@ -1,34 +1,45 @@
-#! /usr/bin/env scala
-!#
-
 import scala.util.Random
 
-println("Guess-a-number game!")
-println("I am thinking of a number between 1 and 100")
-print("What's your guess? ")
+object guess_number {
 
-val target = Random.nextInt(100) + 1
-var current = 0
+  val target = Random.nextInt(100) + 1
+  var current = 0
 
-while (current != target) {
+  def main(argv: Array[String]) {
+    println("Guess-a-number game!")
+    println("I am thinking of a number between 1 and 100")
+    print("What's your guess? ")
+    
+    guess()
+  }
 
-  current = Console.readInt
-  if (current < target)
-    print("Too low! Guess again: ")
-  else if (current > target)
-    print("Too high! Guess again: ")
+  def guess() {
+    while (current != target) {
 
+      current = Console.readInt()
+
+      if (current < target)
+        print("Too low! Guess again: ")
+
+      else if (current > target)
+        print("Too high! Guess again: ")
+
+      else {
+        println("Correct! You won!")
+        return
+      }
+    }
+  }
+  
 }
-
-println("Correct! You won!")
 
 /** TAIL INFO:
  * Name: Guess Number
  * Language: Scala
+ * Compile: scalac guess_number.scala
  * State: Done
  *
  * Play guess-a-number game
  *
- *
- * Example: ./guess_number.scala
+ * Example: scala guess_number
 */

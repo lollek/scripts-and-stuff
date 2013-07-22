@@ -1,3 +1,4 @@
-_c
-.class
-.beam
+*_c
+*.class
+*.beam
+*.dump
