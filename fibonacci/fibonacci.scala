@@ -3,11 +3,9 @@ object fibonacci {
   def main(argv:Array[String]) {
 
     // If there are no arguments: print 20 fibs:
-    if (argv.length == 0) {
-      for (i <- 0 until 10) {
+    if (argv.length == 0)
+      for (i <- 0 until 10)
         println(fib(i) + "\t" + fib(i+10))
-      }
-    } 
 
     // Otherwise, fib the argument:
     else

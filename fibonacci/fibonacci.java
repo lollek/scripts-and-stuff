@@ -1,27 +1,18 @@
 
 public class fibonacci {
   public static void main(String[] args) {
-    
-    int i;
 
     /* If there's an argument, fib it! */
-    if (args.length == 1) {
-      fib(Integer.parseInt(args[0]));
-      System.out.println();
-      return;
-    }
+    if (args.length == 1)
+      System.out.println(fib(Integer.parseInt(args[0])));
 
     /* Else, run 20 fibs */
-    for (i = 0; i < 10; i++) {
-      fib(i);
-      System.out.print("\t");
-      fib(i+10);
-      System.out.println();
-    }
-    return;
+    else
+      for (int i = 0; i < 10; i++)
+        System.out.println(fib(i) + "\t" + fib(i+10));
   }
 
-  private static void fib(int rotations) {
+  private static int fib(int rotations) {
 
     int tmp;
     int old_value = 1;
@@ -34,7 +25,7 @@ public class fibonacci {
       rotations -= 1;
     }
     
-    System.out.print(new_value);
+    return new_value;
   }
 }
 

@@ -1,7 +1,5 @@
 #! /usr/bin/env ruby
 
-$stdout.sync = true
-
 def fib(rot)
   
   old_value = 1
@@ -12,18 +10,18 @@ def fib(rot)
     rot -= 1
   end
 
-  print new_value
+  return new_value
   
 end
 
 # If no arguments, run 20 fibs:
 if ARGV.length == 0 then
-  (0...10).each {|i| fib(i); print "\t"; fib(i + 10); print "\n"}
+  (0...10).each {|i| puts "#{fib(i)}\t#{fib(i + 10)}"}
 
 # Else, fib the first argument:
 else
-  fib(ARGV[0].to_i)
-  puts
+  puts fib(ARGV[0].to_i)
+
 end
 
 =begin

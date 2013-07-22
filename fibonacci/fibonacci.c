@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void fib(int rot) {
+unsigned long fib(int rot) {
 
-  int old_value = 1;
-  int new_value = 0;
-  int tmp;
+  unsigned long old_value = 1;
+  unsigned long new_value = 0;
+  unsigned long tmp;
 
   while (rot > 0) {
     tmp = old_value;
@@ -13,27 +13,21 @@ void fib(int rot) {
     new_value = tmp + old_value;
     rot -= 1;
   }
-  printf("%d", new_value);
+  return new_value;
 }
 
 int main(int argc, char* argv[]) {
 
   int i;
 
-  /* If two args, return fib(argv[2]) */
-  if (argc == 2) {
-    fib(atoi(argv[1]));
-    printf("\n");
-  }
+  /* Fib the argument, if possible: */
+  if (argc == 2)
+    printf("%lu\n", fib(atoi(argv[1])));
+
   /* Else: run 20 fibs: */
-  else {
-    for (i = 0; i < 10; i++) {
-      fib(i);
-      printf("\t");
-      fib(i + 10);
-      printf("\n");
-    }
-  }
+  else
+    for (i = 0; i < 10; i++)
+      printf("%lu\t%lu\n", fib(i), fib(i+10));
     
   return 0;
 }

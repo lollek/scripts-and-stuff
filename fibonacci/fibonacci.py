@@ -12,21 +12,16 @@ def fib(rot):
         old_value, new_value = new_value, new_value + old_value
         rot -= 1
 
-    print(new_value, end="")
+    return new_value
 
 # If no arguments, print 20 fibs::
 if len(argv) == 1:
-    
     for r in range(10):
-        fib(r)
-        print("\t", end="")
-        fib(r + 10)
-        print("\n", end="")
+        print("%s\t%s" % (fib(r), fib(r+10)))
 
 # Otherwise we'll fib the first argument:
 else:
-    fib(int(argv[1]))
-    print()
+    print(fib(int(argv[1])))
 
 """ TAIL INFO:
 Name: Fibonacci Sequence
