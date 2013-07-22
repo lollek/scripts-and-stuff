@@ -82,6 +82,10 @@ if ARGV.length == 3
     puts "#{rome_from_int(arg1)} - #{rome_from_int(arg2)} = #{rome_from_int(arg1 - arg2)}"
     puts "#{arg1} - #{arg2} = #{arg1 - arg2}"
   end
+
+else 
+  puts "Example usage: ./roman_math.rb + XVI IV"
+  puts "Example usage: ./roman_math.rb - VI IV"
 end
 
 =begin
