@@ -4,20 +4,21 @@
 guess_number(Solution, Num) ->
     io:format("Guess ~w: ", [Num]),
     {ok, [Guess]} = io:fread("", "~d"),
-    guess_number(Guess, Solution, Num).
 
-guess_number(Attempt, Solution, _) when Attempt == Solution ->
-    io:fwrite("Correct! You have won!\n"),
-    init:stop();
-guess_number(_, Solution, Num) when Num >= 5 ->
-    io:format("Haha, I won! The number was ~w~n", [Solution]),
-    init:stop();
-guess_number(Attempt, Solution, Num) ->
     if
-        Attempt > Solution -> io:fwrite("Too high! Try again!\n");
-        true -> io:fwrite("Too low! Try again!\n")
-    end,
-    guess_number(Solution, Num+1).
+        Guess == Solution ->
+            io:fwrite("Correct! You have won!\n"),
+            init:stop();
+        Num == 5 ->
+            io:format("Haha, I won! The number was ~w~n", [Solution]),
+            init:stop();
+        Guess > Solution ->
+            io:fwrite("Too high! Try again!\n"),
+            guess_number(Solution, Num + 1);
+        true -> % Guess < Solution
+            io:fwrite("Too low! Try again!\n"),
+            guess_number(Solution, Num + 1)
+    end.
 
 guess_number() ->
     random:seed(now()),
