@@ -22,30 +22,26 @@ romeFromInt c
                 
 intFromRome :: String -> Int       
 intFromRome "" = 0
-intFromRome (h:"")
-  | h == 'M' = 1000
-  | h == 'D' = 500
-  | h == 'C' = 100
-  | h == 'L' = 50
-  | h == 'X' = 10
-  | h == 'V' = 5
-  | h == 'I' = 1
+intFromRome "M" = 1000
+intFromRome "D" = 500
+intFromRome "C" = 100
+intFromRome "L" = 50
+intFromRome "X" = 10
+intFromRome "V" = 5
+intFromRome "I" = 1
 intFromRome ('M':t) = 1000 + intFromRome t
 intFromRome ('D':t) = 500 + intFromRome t
-intFromRome ('C':h:t)
-  | h == 'M' = 900 + intFromRome t
-  | h == 'D' = 400 + intFromRome t
-  | otherwise = 100 + intFromRome (h:t)
+intFromRome ('C':'M':t) = 900 + intFromRome t
+intFromRome ('C':'D':t) = 400 + intFromRome t
+intFromRome ('C':t) = 100 + intFromRome t
 intFromRome ('L':t) = 50 + intFromRome t
-intFromRome ('X':h:t) 
-  | h == 'C' = 90 + intFromRome t
-  | h == 'L' = 40 + intFromRome t
-  | otherwise = 10 + intFromRome (h:t)
+intFromRome ('X':'C':t) = 90 + intFromRome t
+intFromRome ('X':'L':t) = 40 + intFromRome t
+intFromRome ('X':t) = 10 + intFromRome t
 intFromRome ('V':t) = 5 + intFromRome t
-intFromRome ('I':h:t) 
-  | h == 'X' = 9 + intFromRome t
-  | h == 'V' = 4 + intFromRome t
-  | otherwise = 1 + intFromRome (h:t)
+intFromRome ('I':'X':t) = 9 + intFromRome t
+intFromRome ('I':'V':t) = 4 + intFromRome t
+intFromRome ('I':t) = 1 + intFromRome t
 intFromRome (h:t) = intFromRome t
 
 usage :: IO ()
@@ -62,8 +58,6 @@ convert num = do
            print $ intFromRome num
          else
            putStrLn "Unknown"
-           
-  
 
 main = do 
   argv <- getArgs
