@@ -2,24 +2,20 @@ module Main where
 
 import System.Environment
 
-fibAux :: (Integer, Integer, Integer) -> (Integer, Integer, Integer)
-fibAux (x, y, 0) = (x, y, 0)
+fibAux :: (Integer, Integer, Integer) -> String
+fibAux (x, y, 0) = show x
 fibAux (x, y, z) = fibAux (y, y + x, z - 1)
 
-fibParse :: (Integer, Integer, Integer) -> Integer
-fibParse (x, y, z) = x
-
-fib :: Integer -> Integer
-fib x = fibParse(fibAux(0, 1, x))
-
-getArg :: [String] -> Integer
-getArg arg = read (arg !! 0) :: Integer
+fib :: String -> String
+fib x = fibAux (0, 1, read x :: Integer)
 
 main = do
-  arg <- System.Environment.getArgs
-  if length arg == 1 then
-    print $ fib $ getArg arg
-    else putStrLn "Usage: ./fibonacci <number>"
+  argv <- getArgs
+  if length argv == 1 then
+    let (a:b) = argv
+    in putStrLn $ fib a
+    else
+    putStr $ unlines $ map fib [show x | x <- [0..19]]
 
   
 -- TAIL INFO
@@ -30,6 +26,6 @@ main = do
 --
 -- Prints out numbers from the fibonacci sequence
 --
---
--- Example: ./fibonacci 42
+-- Example: ./fibonacci
+-- Example2: ./fibonacci 42
 --
