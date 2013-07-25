@@ -9,9 +9,17 @@ rot13 c
   | 'n' <= toLower c && toLower c <= 'z' = chr(ord c - 13)
   | otherwise = c
 
+pipeRot = do
+  line <- getLine
+  putStrLn $ map rot13 line
+  pipeRot
+
 main = do
   arg <- System.Environment.getArgs
-  putStrLn $ map rot13 (unwords arg)
+  if length arg > 0 then
+    putStrLn $ map rot13 (unwords arg)
+    else
+    pipeRot
     
 -- TAIL INFO:
 -- Name: Rot13
@@ -21,6 +29,6 @@ main = do
 --
 -- Rotate the argument by 13 letters
 --
---
 -- Example: ./rot13 hello world
+-- Example2: cat rot13.hs | ./rot13
 --
