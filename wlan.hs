@@ -7,15 +7,17 @@ import System.Console.ANSI
 import Control.Monad (when)
 import System.IO (hFlush, stdout)
 
--- Macro for `iwlist wlan0 scan`
+-- (ExitCode, stdout, stderr) for `iwlist wlan0 scan`
 wlanScan :: IO (ExitCode, String, String)
 wlanScan = readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
 
--- Split above result into Array[Cell]
+-- Takes a string, splits it by mention of "Cell"
+--  and returns all except the first instances as an array
 scanToCells :: String -> [String]
 scanToCells msg = drop 1 $ map unpack $ splitOn (pack "Cell") (pack msg)
 
--- Split above result into (mac, quality, enc, essid)
+-- Takes one of the Cells above and splits it into a tuple of
+--  (mac, quality, encryption, essid)
 formatCell :: String -> (String, String, String, String)
 formatCell cell = do
   let splitCell = lines cell
@@ -36,13 +38,15 @@ printCell (mac, quality, enc, essid) = do
   putStrLn $ "\t" ++ mac ++ " - " ++ quality ++ "/70 - " ++ enc ++ " - " ++ essid
   setSGR [Reset]
   
-printAllCells :: [(String, String, String, String)] -> IO ()
-printAllCells cellList = do
+-- Prints several cells through above function
+printCells :: [(String, String, String, String)] -> IO ()
+printCells cellList = do
   putStrLn $ show (length cellList) ++ " access points found: "
   mapM_ printCell cellList
 
+-- Takes stdout from `iwlist wlan0 scan` and prints all cells
 formatScan :: String -> IO ()
-formatScan scanResult = printAllCells $ map formatCell $ scanToCells scanResult
+formatScan scanResult = printCells $ map formatCell $ scanToCells scanResult
   
 
 

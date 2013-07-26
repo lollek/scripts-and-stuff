@@ -21,14 +21,6 @@ romeFromInt c
   | otherwise = ""
                 
 intFromRome :: String -> Int       
-intFromRome ""          = 0
-intFromRome "M"         = 1000
-intFromRome "D"         = 500
-intFromRome "C"         = 100
-intFromRome "L"         = 50
-intFromRome "X"         = 10
-intFromRome "V"         = 5
-intFromRome "I"         = 1
 intFromRome ('M':t)     = 1000 + intFromRome t
 intFromRome ('D':t)     = 500 + intFromRome t
 intFromRome ('C':'M':t) = 900 + intFromRome t
@@ -42,6 +34,7 @@ intFromRome ('V':t)     = 5 + intFromRome t
 intFromRome ('I':'X':t) = 9 + intFromRome t
 intFromRome ('I':'V':t) = 4 + intFromRome t
 intFromRome ('I':t)     = 1 + intFromRome t
+intFromRome ""          = 0
 intFromRome (h:t)       = intFromRome t
 
 usage :: IO ()

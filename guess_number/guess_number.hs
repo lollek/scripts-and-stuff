@@ -28,3 +28,13 @@ main = do
   putStrLn "You have 5 tries to guess it correctly or I win"
   putStrLn "What's your guess?"
   guess_number(solution, 1)
+  
+-- TAIL INFO:
+-- Name: Guess number
+-- Language: Haskell
+-- Compile: ghc --make guess_number.hs
+-- State: Done
+--
+-- Play guess-a-number game
+--
+-- Example: ./guess_number
