@@ -1,66 +1,67 @@
 module Main where
 
-import System.Process (readProcessWithExitCode)
-import System.Exit (ExitCode (ExitSuccess), exitFailure)
-import Data.Text (pack, unpack, splitOn)
-import System.Console.ANSI
-import Control.Monad (when)
-import System.IO (hFlush, stdout)
+import qualified Data.Text as Text
+import qualified System.Console.ANSI as Xterm
+import qualified System.Exit as Exit
+import qualified System.IO as IO
+import qualified System.Process as S
 
 -- (ExitCode, stdout, stderr) for `iwlist wlan0 scan`
-wlanScan :: IO (ExitCode, String, String)
-wlanScan = readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
+wlanScan :: IO (Exit.ExitCode, String, String)
+wlanScan = SP.readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
 
--- Takes a string, splits it by mention of "Cell"
---  and returns all except the first instances as an array
-scanToCells :: String -> [String]
-scanToCells msg = drop 1 $ map unpack $ splitOn (pack "Cell") (pack msg)
+--dirScan :: IO (Exit.ExitCode, [String])
+--dirScan = 
 
--- Takes one of the Cells above and splits it into a tuple of
---  (mac, quality, encryption, essid)
-formatCell :: String -> (String, String, String, String)
-formatCell cell = do
-  let splitCell = lines cell
-    in (
-    drop 15 $ splitCell !! 0,          -- MAC
-    take 2 $ drop 28 $ splitCell !! 3, -- QUALITY
-    drop 35 $ splitCell !! 4,          -- ENCRYPTION
-    init $ drop 27 $ splitCell !! 5    -- ESSID
-    )
-  
--- Print a cell
-printCell :: (String, String, String, String) -> IO ()
-printCell (mac, quality, enc, essid) = do
-  if enc == "on" then
-    setSGR [SetColor Foreground Vivid Red]
-    else
-    setSGR [SetColor Foreground Vivid Green]
-  putStrLn $ "\t" ++ mac ++ " - " ++ quality ++ "/70 - " ++ enc ++ " - " ++ essid
-  setSGR [Reset]
-  
--- Prints several cells through above function
+-- Takes a string (stdout from wlanScan) and splits it by mention of "Cell"
+-- then takes each Cell and splits it into a tuple and returns
+-- [(num, quality, encryption, essid)]
+formatCells :: String -> [(String, String, String, String)]
+formatCells string = map formatCell newString
+  where 
+    -- Split by cell and drop the first instance:
+    newString = drop 1 $ map Text.unpack $ Text.splitOn (Text.pack "Cell") (Text.pack string)
+    -- Format to (num, quality, encryption, essid):
+    formatCell cells =
+      ( take 3 $ cell !! 0,                        -- NUM
+        toPercent $ take 2 $ drop 28 $ cell !! 3,  -- QUALITY
+        drop 35 $ cell !! 4,                       -- ENCRYPTION
+        init $ drop 27 $ cell !! 5 )               -- ESSID
+      where 
+        -- Split to array: 
+        cell = lines cells
+        -- Change from e.g 50 (max is 70) to 71 (max is 100)
+        toPercent x = show $ floor $ (read x :: Double) / 70 * 100
+    
+-- Prints the cells from FormatCells
 printCells :: [(String, String, String, String)] -> IO ()
 printCells cellList = do
   putStrLn $ show (length cellList) ++ " access points found: "
+  putStrLn " No - Signal - Enc\t- Name"
   mapM_ printCell cellList
+  where 
+    -- Print a cell:
+    printCell (num, quality, enc, essid) = do
+      if enc == "on" then
+        Xterm.setSGR [Xterm.SetColor Xterm.Foreground Xterm.Vivid Xterm.Red]
+        else
+        Xterm.setSGR [Xterm.SetColor Xterm.Foreground Xterm.Vivid Xterm.Blue]
+      putStrLn $ num ++ " - " ++ quality ++ "%    - " ++ enc ++ "\t- " ++ essid
+      Xterm.setSGR [Xterm.Reset]
 
--- Takes stdout from `iwlist wlan0 scan` and prints all cells
-formatScan :: String -> IO ()
-formatScan scanResult = printCells $ map formatCell $ scanToCells scanResult
-  
-
-
+          
 main = do
   putStr "Scanning for access points ... "
-  hFlush stdout
+  IO.hFlush IO.stdout
   
   (code, msg, _) <- wlanScan
-  when (code /= ExitSuccess)
-    (putStrLn $ "[ERR] - Are you really signed on as root?"); exitFailure
-  
-  putStrLn "[OK]"
-  formatScan msg
-
+  case code of
+    Exit.ExitFailure _ -> do
+      putStrLn "[ERR] - Are you really signed on as root?"
+      Exit.exitFailure
+    _ -> do
+      putStrLn "[OK]"
+      printCells $ formatCells msg
 
 -- TAIL INFO:
 -- Name: Lollian Wlan Scan and Connect
