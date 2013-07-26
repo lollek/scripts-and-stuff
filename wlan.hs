@@ -4,7 +4,7 @@ import qualified Data.Text as Text
 import qualified System.Console.ANSI as Xterm
 import qualified System.Exit as Exit
 import qualified System.IO as IO
-import qualified System.Process as S
+import qualified System.Process as SP
 
 -- (ExitCode, stdout, stderr) for `iwlist wlan0 scan`
 wlanScan :: IO (Exit.ExitCode, String, String)
@@ -42,10 +42,9 @@ printCells cellList = do
   where 
     -- Print a cell:
     printCell (num, quality, enc, essid) = do
-      if enc == "on" then
-        Xterm.setSGR [Xterm.SetColor Xterm.Foreground Xterm.Vivid Xterm.Red]
-        else
-        Xterm.setSGR [Xterm.SetColor Xterm.Foreground Xterm.Vivid Xterm.Blue]
+      case enc of
+        "on" -> Xterm.setSGR [Xterm.SetColor Xterm.Foreground Xterm.Vivid Xterm.Red]
+        _ -> Xterm.setSGR [Xterm.SetColor Xterm.Foreground Xterm.Vivid Xterm.Blue]
       putStrLn $ num ++ " - " ++ quality ++ "%    - " ++ enc ++ "\t- " ++ essid
       Xterm.setSGR [Xterm.Reset]
 
