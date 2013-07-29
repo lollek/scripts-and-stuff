@@ -3,8 +3,9 @@ module Main where
 import System.Environment
 
 quicksort :: Ord a => [a] -> [a]
-quicksort (h:t) = quicksort [x | x <- t, x < h] ++ [h] ++ quicksort [x | x <- t, x >= h]
 quicksort [] = []
+quicksort (h:t) = 
+  quicksort (filter (<h) t) ++ [h] ++ quicksort (filter (>=h) t)
   
 main = do
   arg <- System.Environment.getArgs

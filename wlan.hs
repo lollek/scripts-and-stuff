@@ -6,14 +6,6 @@ import qualified System.Exit as Exit
 import qualified System.IO as IO
 import qualified System.Process as SP
 
--- split "e" "hello" == ["h","llo"]
--- did this to replace splitOn from Data.Text
-split :: String -> String -> [String]
-split _ [] = [""]
-split w (x:xs)
-  | take (length w) (x:xs) == w = "" : split w (drop (length w) (x:xs))
-  | otherwise = (x: head (split w xs)) : tail (split w xs)
-
 -- (ExitCode, stdout, stderr) for `iwlist wlan0 scan`
 wlanScan :: IO (Exit.ExitCode, String, String)
 wlanScan = SP.readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
