@@ -1,21 +1,19 @@
 module Main where
 
-import System.Environment
+import System.Environment (getArgs)
 
-fibAux :: (Integer, Integer, Integer) -> String
-fibAux (x, y, 0) = show x
-fibAux (x, y, z) = fibAux (y, y + x, z - 1)
-
-fib :: String -> String
-fib x = fibAux (0, 1, read x :: Integer)
+fib :: Integer -> String
+fib x = fibAux (0, 1, x)
+  where
+    fibAux (x, y, 0) = show 0
+    fibAux (x, y, z) = fibAux (y, y + x, z - 1)
 
 main = do
   argv <- getArgs
   if length argv == 1 then
-    let (a:b) = argv
-    in putStrLn $ fib a
+    putStrLn $ fib $ read $ unwords argv
     else
-    putStr $ unlines $ map fib [show x | x <- [0..19]]
+    putStr $ unlines $ map fib [0..19]
 
   
 -- TAIL INFO

@@ -9,17 +9,12 @@ rot13 c
   | 'n' <= toLower c && toLower c <= 'z' = chr(ord c - 13)
   | otherwise = c
 
-pipeRot = do
-  line <- getLine
-  putStrLn $ map rot13 line
-  pipeRot
-
 main = do
   arg <- System.Environment.getArgs
   if length arg > 0 then
-    putStrLn $ map rot13 (unwords arg)
+    putStrLn $ map rot13 $ unwords arg
     else
-    pipeRot
+    interact $ map rot13
     
 -- TAIL INFO:
 -- Name: Rot13

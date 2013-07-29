@@ -1,3 +1,6 @@
+module Lollian (split) where
+
+-- Lollian.split "e" "hello" == ["h", "llo"]
 split :: String -> String -> [String]
 split _ [] = [""]
 split w (x:xs)
@@ -5,13 +8,19 @@ split w (x:xs)
   | otherwise = (x: head (split w xs)) : tail (split w xs)
  
 -- TAIL INFO:
--- Name: Split
+-- Name: Lollian Haskell Functions
 -- Language: Haskell
 -- State: Done
 --
--- split "e" "hello" == ["h","llo"]
--- did this to replace splitOn from Data.Text but later changed my mind
+-- Will put stuff here if I dunno where to place them
+-- 
 --
--- This is not a script but a helping module
 -- 
 -- 
+-- 
+
+
+
+
+
+
