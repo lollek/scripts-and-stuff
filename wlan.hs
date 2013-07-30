@@ -5,6 +5,7 @@ import qualified Data.List as L
 import qualified Data.List.Split as LS
 import qualified System.Console.ANSI as Xterm
 import qualified System.Directory as Dir
+import qualified System.Environment as Env
 import qualified System.Exit as Exit
 import qualified System.IO as IO
 import qualified System.IO.Error as IOE
@@ -27,7 +28,6 @@ raiseHaikuError = do
   Exit.exitFailure
 
 -- Formats result from wlan0 scan
--- Should I rewrite this nasty piece of code?
 formatCells :: [String] -> String -> [(String, String, String, String)]
 formatCells accessPoints = map formatCell . drop 1 . LS.splitOn "Cell"
   where 
@@ -58,25 +58,50 @@ printCells cellList = do
         _ -> printInColor (num ++ " -   " ++ quality ++ "%  -  known\t- " ++ essid) Xterm.Green
   
 connectTo :: (String, String, String, String) -> IO ()  
-connectTo (num, quality, "2", essid) = do
+connectTo (num, quality, enc, essid) = do
+  putStrLn $ "Attempting to connect to " ++ essid
+  
   -- Configure wpa
-  putStrLn "Configuring wpa ... "
-  (wpaCode, _, _) <- SP.readProcessWithExitCode "wpa_supplicant"
-         ["-B", "-i", "wlan0", "-c", "/root/wlan/" ++ essid] []
-  case wpaCode of
-    Exit.ExitFailure _ -> raiseHaikuError
-    _ -> printInColor "OK" Xterm.Green
+  putStr "Configuring connection ... "
+  IO.hFlush IO.stdout
+  
+  case enc of
+    -- Known encrypted
+    "2" -> do 
+      (wpaCode, _, _) <- SP.readProcessWithExitCode "wpa_supplicant" 
+                         ["-B", "-i", "wlan0", "-c", "/root/wlan/" ++ essid] []
+      case wpaCode of
+        Exit.ExitFailure _ -> raiseHaikuError
+        _ -> printInColor "OK" Xterm.Green
+        
+    -- Unknown unencrypted
+    "1" -> do 
+      (iwCode, _, _) <- SP.readProcessWithExitCode "iwconfig"
+                        ["wlan0", "essid", essid] []
+      case iwCode of
+        Exit.ExitFailure _ -> raiseHaikuError
+        _ -> printInColor "OK" Xterm.Green
+        
+    -- Unknown encrypted 
+    _ -> do -- FIX: Add support for adding networks on the fly
+      printInColor "Error - Cannot yet connect to unknown encrypted networks :(" Xterm.Red
+      Exit.exitFailure
       
   -- Run dhclient
-  putStrLn "Asking kindly for an IP address ... "
-  (dhCode, _, _) <-SP.readProcessWithExitCode "dhclient" ["wlan0"] []
+  putStr "Waiting for an IP address ... "
+  IO.hFlush IO.stdout
+  
+  (dhCode, _, _) <-SP.readProcessWithExitCode "dhclient" ["wlan0", "-1"] []
   case dhCode of 
-    Exit.ExitFailure _ -> raiseHaikuError
+    Exit.ExitFailure _ -> do -- FIX: Kill wpa_supplicant here
+      printInColor "Error - No IP received" Xterm.Red
+      Exit.exitFailure
     _ -> do
       printInColor "OK" Xterm.Green
       Exit.exitSuccess
-connectTo _ = raiseHaikuError      
   
+
+
 main = do
   
   -- Make a list of known access points
@@ -85,8 +110,8 @@ main = do
   
   dirScan <- E.try (Dir.getDirectoryContents "/root/wlan") :: IO (Either IOError [String])
   case dirScan of
-    Left err -> do 
-      printInColor ("Error - " ++ IOE.ioeGetErrorString err) Xterm.Red
+    Left err -> do
+      printInColor ("Error - /root/wlan " ++ IOE.ioeGetErrorString err) Xterm.Red
       Exit.exitFailure
     Right knownAccessPoints -> do 
       printInColor "OK" Xterm.Green
@@ -105,7 +130,9 @@ main = do
           putStrLn $ "Select WLAN to connect to (1-" ++ 
             (show (length knownCells)) ++ ") or ^C to cancel"
           selectedCell <- readLn :: IO Int
-          connectTo (knownCells !! pred selectedCell)
+          if (1 <= selectedCell && selectedCell <= length knownCells) then
+            connectTo (knownCells !! pred selectedCell)
+            else putStrLn $ "Seriously? Do you see a "++(show selectedCell)++" in the list?"
           where
             knownAccessPoints' = drop 2 $ L.sort knownAccessPoints 
             knownCells = formatCells knownAccessPoints' stringOfCells
