@@ -1,69 +1,90 @@
 module Main where
 
+import qualified Control.Exception as E
+import qualified Data.List as L
 import qualified Data.List.Split as LS
 import qualified System.Console.ANSI as Xterm
+import qualified System.Directory as Dir
 import qualified System.Exit as Exit
 import qualified System.IO as IO
 import qualified System.IO.Error as IOE
 import qualified System.Process as SP
 
 -- Formats result from wlan0 scan
-formatCells :: String -> [(String, String, String, String)]
-formatCells = map formatCell . drop 1 . LS.splitOn "Cell"
+-- Should I rewrite this nasty piece of code?
+formatCells :: [String] -> String -> [(String, String, String, String)]
+formatCells accessPoints = map formatCell . drop 1 . LS.splitOn "Cell"
   where 
     formatCell c = (num c, quality c, enc c, essid c)
       where
-        num = take 3 . (!! 0). lines
-        quality = toPercent . take 2 . drop 28 . (!! 3) .lines
+        num = take 3 . (!!0) . lines
+        quality = toPercent . take 2 . drop 28 . (!!3) . lines
           where toPercent = show . floor . (/70) . (*100) . read
-        enc = drop 35 . (!! 4) . lines
-        essid = init .drop 27 . (!! 5) . lines
+        enc c
+          | init (drop 27 ((lines c) !! 5)) `elem` accessPoints = "2"
+          | drop 35 ((lines c) !! 4) == "off" = "1"
+          | otherwise = "0"
+        essid = init . drop 27 . (!!5) . lines
+
 
 -- Prints the cells from FormatCells
 printCells :: [(String, String, String, String)] -> IO ()
 printCells cellList = do
   putStrLn $ show (length cellList) ++ " access points found: "
-  putStrLn " No - Signal - Enc\t- Name"
+  putStrLn " No - Signal - Encrypt\t- Name"
   mapM_ printCell cellList
   where 
     printCell (num, quality, enc, essid) = do
       case enc of
-        "on" -> Xterm.setSGR [Xterm.SetColor Xterm.Foreground Xterm.Vivid Xterm.Red]
-        _ -> Xterm.setSGR [Xterm.SetColor Xterm.Foreground Xterm.Vivid Xterm.Blue]
-      putStrLn $ num ++ " - " ++ quality ++ "%    - " ++ enc ++ "\t- " ++ essid
+        "0" -> do
+          setXtermColor Xterm.Red
+          putStrLn $ num ++ " - " ++ quality ++ "%    - on\t- " ++ essid
+        "1" -> do
+          setXtermColor Xterm.Blue
+          putStrLn $ num ++ " - " ++ quality ++ "%    - off\t- " ++ essid
+        _ -> do
+          setXtermColor Xterm.Green
+          putStrLn $ num ++ " - " ++ quality ++ "%    - known\t- " ++ essid
       Xterm.setSGR [Xterm.Reset]
+      
+      where setXtermColor color = do
+              Xterm.setSGR [Xterm.SetColor Xterm.Foreground Xterm.Vivid color]
+              Xterm.setSGR [Xterm.SetConsoleIntensity Xterm.BoldIntensity]
 
-          
+  
 main = do
   
-  -- Try to check for nearby access points
-  putStr "Scanning for access points ... "
+  -- Make a list of known access points
+  putStr "Checking for known access points ... "
   IO.hFlush IO.stdout
-
-  (code, msg, _) <- SP.readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
-  case code of
-    Exit.ExitFailure _ -> do
-      putStrLn "[ERR]\nAre you really signed on as root?"
-      Exit.exitFailure
-    _ -> do
-      putStrLn "[OK]"
-      
-  printCells $ formatCells msg
-
-  -- Check for known access points
-  --putStr "Checking for known access points ... "
-  --wpaList <- listWpas `E.catch` handleError
-  --where
-    --listWpas = Dir.getDirectoryContents "/root/wlan"
-    --handleError e = putStrLn $ unlines [ 
-    --"[Err]",
-    --IOE.ioeGetErrorString e ]
+  
+  dirScan <- E.try (Dir.getDirectoryContents "/root/wlan") :: IO (Either IOError [String])
+  case dirScan of
     
-  --wpaList <- Dir.getDirectoryContents "/root/wlan"
-  --drop 2 $ List.sort wpaList
-  --print wpaList
+    Left err -> do 
+      putStrLn $ "[Err]\nError message: " ++ IOE.ioeGetErrorString err
+      Exit.exitFailure
+      
+    Right knownAccessPoints -> do 
+      putStrLn "[OK]"
+  
+      -- Try to check for nearby access points
+      putStr "Scanning for access points ... "
+      IO.hFlush IO.stdout
 
+      (exitCode, stringOfCells, _) <- SP.readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
+      case exitCode of
+        
+        Exit.ExitFailure _ -> do
+          putStrLn "[ERR]\nAre you really signed on as root?"
+          Exit.exitFailure
+          
+        _ -> do
+          putStrLn "[OK]"
+          printCells $ formatCells knownAccessPoints' stringOfCells
+          where knownAccessPoints' = drop 2 $ L.sort knownAccessPoints
 
+    
 -- TAIL INFO:
 -- Name: Lollian Wlan Scan and Connect
 -- Language: Haskell
