@@ -33,15 +33,14 @@ formatCells accessPoints = map formatCell . drop 1 . LS.splitOn "Cell"
   where 
     formatCell c = (num c, quality c, enc c, essid c)
       where
-        num = take 3 . (!!0) . lines
-        quality = toPercent . take 2 . drop 28 . (!!3) . lines
-          where toPercent = show . floor . (/70) . (*100) . read
+        essid = init . drop 27 . (!!5) . lines
         enc c
-          | init (drop 27 ((lines c) !! 5)) `elem` accessPoints = "2"
+          | essid c `elem` accessPoints = "2"
           | drop 35 ((lines c) !! 4) == "off" = "1"
           | otherwise = "0"
-        essid = init . drop 27 . (!!5) . lines
-
+        quality = toPercent . take 2 . drop 28 . (!!3) . lines
+          where toPercent = show . floor . (/70) . (*100) . read
+        num = take 3 . (!!0) . lines
 
 -- Prints the cells from FormatCells
 printCells :: [(String, String, String, String)] -> IO ()
@@ -66,32 +65,51 @@ connectTo (num, quality, enc, essid) = do
   IO.hFlush IO.stdout
   
   case enc of
-    -- Known encrypted
-    "2" -> do 
+    "2" -> do -- Known encrypted
       (wpaCode, _, _) <- SP.readProcessWithExitCode "wpa_supplicant" 
                          ["-B", "-i", "wlan0", "-c", "/root/wlan/" ++ essid] []
       case wpaCode of
         Exit.ExitFailure _ -> raiseHaikuError
         _ -> printInColor "OK" Xterm.Green
-        
-    -- Unknown unencrypted
-    "1" -> do 
-      (iwCode, _, _) <- SP.readProcessWithExitCode "iwconfig"
-                        ["wlan0", "essid", essid] []
+    "1" -> do -- Unknown unencrypted
+      (iwCode, _, _) <- SP.readProcessWithExitCode "iwconfig" ["wlan0", "essid", essid] []
       case iwCode of
         Exit.ExitFailure _ -> raiseHaikuError
         _ -> printInColor "OK" Xterm.Green
+    _ -> do -- Unknown encrypted - FIX: Add support for adding networks on the fly
+      putStr "\nPassword: "
+      IO.hFlush IO.stdout
+      passwd <- getLine --FIX: Can fail
+      
+      putStr "Generating WPA PSK ... "
+      IO.hFlush IO.stdout
+      (supplCode, supplString, _) <- SP.readProcessWithExitCode "wpa_passphrase"
+                                     [essid, passwd] []
+      case supplCode of
+        Exit.ExitFailure _ -> raiseHaikuError
+        _ -> return ()
         
-    -- Unknown encrypted 
-    _ -> do -- FIX: Add support for adding networks on the fly
-      printInColor "Error - Cannot yet connect to unknown encrypted networks :(" Xterm.Red
-      Exit.exitFailure
+      -- FIX: Not error proof:
+      (path, handle) <- IO.openTempFile "/tmp" ("wlan.hs."++essid)
+      printInColor ("OK: " ++ path) Xterm.Green
+      IO.hPutStrLn handle supplString
+      IO.hClose handle
+      
+      putStr "Configuring connection ... "
+      IO.hFlush IO.stdout
+      
+      (wpaCode, _, _) <- SP.readProcessWithExitCode "wpa_supplicant"
+                         ["-B", "-i", "wlan0", "-c", path] []
+      case wpaCode of
+        Exit.ExitFailure _ -> raiseHaikuError
+        _ -> printInColor "OK" Xterm.Green
+        -- FIX: enc "2" wpa psk is never saved
       
   -- Run dhclient
   putStr "Waiting for an IP address ... "
   IO.hFlush IO.stdout
   
-  (dhCode, _, _) <-SP.readProcessWithExitCode "dhclient" ["wlan0", "-1"] []
+  (dhCode, _, _) <- SP.readProcessWithExitCode "dhclient" ["wlan0", "-1"] []
   case dhCode of 
     Exit.ExitFailure _ -> do -- FIX: Kill wpa_supplicant here
       printInColor "Error - No IP received" Xterm.Red
@@ -99,8 +117,6 @@ connectTo (num, quality, enc, essid) = do
     _ -> do
       printInColor "OK" Xterm.Green
       Exit.exitSuccess
-  
-
 
 main = do
   
@@ -122,8 +138,7 @@ main = do
 
       (exitCode, stringOfCells, _) <- SP.readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
       case exitCode of
-        Exit.ExitFailure _ -> do
-          raiseHaikuError
+        Exit.ExitFailure _ -> raiseHaikuError
         _ -> do
           printInColor "OK" Xterm.Green
           printCells knownCells
