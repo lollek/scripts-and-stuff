@@ -28,6 +28,7 @@ raiseHaikuError = do
   Exit.exitFailure
 
 -- Formats result from wlan0 scan
+  -- FIX: Shouldn't I sort them, maybe?
 formatCells :: [String] -> String -> [(String, String, String, String)]
 formatCells accessPoints = map formatCell . drop 1 . LS.splitOn "Cell"
   where 
@@ -66,17 +67,19 @@ connectTo (num, quality, enc, essid) = do
   
   case enc of
     "2" -> do -- Known encrypted
-      (wpaCode, _, _) <- SP.readProcessWithExitCode "wpa_supplicant" 
-                         ["-B", "-i", "wlan0", "-c", "/root/wlan/" ++ essid] []
+      (wpaCode, _, _) <- SP.readProcessWithExitCode "wpa_supplicant"
+                         (words ("-B -i wlan0 -D nl80211 -c /root/wlan/" ++ essid)) []
       case wpaCode of
         Exit.ExitFailure _ -> raiseHaikuError
         _ -> printInColor "OK" Xterm.Green
+        
     "1" -> do -- Unknown unencrypted
       (iwCode, _, _) <- SP.readProcessWithExitCode "iwconfig" ["wlan0", "essid", essid] []
       case iwCode of
         Exit.ExitFailure _ -> raiseHaikuError
         _ -> printInColor "OK" Xterm.Green
-    _ -> do -- Unknown encrypted - FIX: Add support for adding networks on the fly
+    
+    _ -> do -- Unknown encrypted
       putStr "\nPassword: "
       IO.hFlush IO.stdout
       passwd <- getLine --FIX: Can fail
@@ -99,7 +102,7 @@ connectTo (num, quality, enc, essid) = do
       IO.hFlush IO.stdout
       
       (wpaCode, _, _) <- SP.readProcessWithExitCode "wpa_supplicant"
-                         ["-B", "-i", "wlan0", "-c", path] []
+                         (words ("-B -i wlan0 -D nl80211 -c " ++ path)) []
       case wpaCode of
         Exit.ExitFailure _ -> raiseHaikuError
         _ -> printInColor "OK" Xterm.Green
@@ -119,6 +122,10 @@ connectTo (num, quality, enc, essid) = do
       Exit.exitSuccess
 
 main = do
+  -- Print a hello
+  Xterm.setSGR [Xterm.SetUnderlining Xterm.SingleUnderline]
+  putStrLn "Lollian WLAN Helper - 2013-08-01"
+  Xterm.setSGR [Xterm.Reset]
   
   -- Make a list of known access points
   putStr "Checking for known access points ... "

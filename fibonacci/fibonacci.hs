@@ -5,7 +5,7 @@ import System.Environment (getArgs)
 fib :: Integer -> String
 fib x = fibAux (0, 1, x)
   where
-    fibAux (x, y, 0) = show 0
+    fibAux (x, y, 0) = show x
     fibAux (x, y, z) = fibAux (y, y + x, z - 1)
 
 main = do
