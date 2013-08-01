@@ -164,10 +164,10 @@ main = do
 -- Name: Lollian Wlan Scan and Connect
 -- Language: Haskell
 -- Compile: ghc --make wlan.hs
--- State: Not done
+-- State: Done w/ bugs
 --
 -- Find and connect to wireless access points
--- WPA Passwords should also be stored under $HOME/.wlan
+-- WPA Passwords should also be stored under /root/wlan
 --
--- Example: ./wlan auto
+-- Example: ./wlan
 --
