@@ -1,15 +1,11 @@
 module Main where
 
-import qualified Control.Exception as E
-import qualified Data.Either as Either
 import qualified Data.List as L
 import qualified Data.List.Split as LS
 import qualified System.Console.ANSI as Xterm
-import qualified System.Directory as Dir
 import qualified System.Environment as Env
 import qualified System.Exit as Exit
 import qualified System.IO as IO
-import qualified System.IO.Error as IOE
 import qualified System.Posix.Unistd as Unistd
 import qualified System.Process as SP
 
@@ -24,10 +20,12 @@ printInColor string color = do
 raiseHaikuError :: IO ()
 raiseHaikuError = do
   printInColor "Error" Xterm.Red
-  putStrLn $ unlines [
-    "", "Errors have occured",
-    "We won't tell you where of why",
-    "Lazy programmers"]
+  putStrLn $ unlines 
+    [""
+    ,"Errors have occured"
+    ,"We won't tell you where of why"
+    ,"Lazy programmers"
+    ]
   Exit.exitFailure
 
 -- Formats result from wlan0 scan
@@ -40,7 +38,7 @@ formatCells accessPoints =
       | essid c `elem` accessPoints = "2"
       | drop 35 ((lines c) !! 4) == "off" = "1"
       | otherwise = "0"
-    quality = show . floor . (/70) . (*100) . read . take 2 . drop 28 . (!!3) . lines
+    quality = show . floor . (*0.7) . read . take 2 . drop 28 . (!!3) . lines
         
 -- Compare cells by 1: encrypt / 2: quality        
 compareCells :: Ord a => (a, a, a) -> (a, a, a) -> Ordering
@@ -65,8 +63,8 @@ printCells cellList = do
         "1" -> printInColor (no ++ " -   " ++ quality ++ "%  -   off\t- " ++ essid) Xterm.Blue
         _ -> printInColor (no ++ " -   " ++ quality ++ "%  -  known\t- " ++ essid) Xterm.Green
       where no = if (length (show num) == 1)
-                 then "0" ++ show num
-                 else show num
+                 then " 0" ++ show num
+                 else " " ++ show num
   
 -- Connects to access point
 wpaSupplicant :: (String, String, String) -> IO ()
@@ -98,7 +96,14 @@ wpaSupplicant (_, "0", essid) = do
     _ -> printInColor "OK" Xterm.Green
     
   dhClient
-    -- FIX: save psk file to /root/wlan here
+  
+  -- If successfull - save the WPA PSK
+  putStr "Storing password for later use ... "
+  IO.hFlush IO.stdout
+  (mvCode, mvOut, mvErr) <- SP.readProcessWithExitCode "mv" [path, "/root/wlan/"++essid] []
+  case mvCode of
+    Exit.ExitFailure _ -> printInColor ("Error\n" ++ mvErr) Xterm.Red
+    _ -> printInColor "OK" Xterm.Green
     
 -- Known / unencrypted    
 wpaSupplicant (_, enc, essid) = do
@@ -144,7 +149,7 @@ wlanKill = do
   
   putStr "Setting wlan0 to up ... "
   IO.hFlush IO.stdout
-  Unistd.sleep 1
+  Unistd.sleep 2
   (ifCode, _, _) <- SP.readProcessWithExitCode "ifconfig" (words "wlan0 up") []
   case ifCode of
     Exit.ExitFailure _ -> printInColor "Failed" Xterm.Red
@@ -157,12 +162,12 @@ connect mode = do
   -- List known access points
   putStr "Checking for known access points ... "
   IO.hFlush IO.stdout
-  dirScan <- E.try (Dir.getDirectoryContents "/root/wlan") :: IO (Either IOError [String])
-  case dirScan of
-    Left err -> do
-      printInColor ("Error - /root/wlan " ++ IOE.ioeGetErrorString err) Xterm.Red
+  (dirErr, dirScan, dirFail) <- SP.readProcessWithExitCode "ls" ["/root/wlan"] []
+  case dirErr of
+    Exit.ExitFailure _ -> do
+      printInColor ("Error\n" ++ dirFail) Xterm.Red
       Exit.exitFailure
-    Right _ -> printInColor "OK" Xterm.Green  
+    _ -> printInColor "OK" Xterm.Green  
       
   -- Try to check for nearby access points
   putStr "Scanning for access points ... "
@@ -173,9 +178,7 @@ connect mode = do
     _ -> printInColor "OK" Xterm.Green
     
   -- Print them out
-  let knownCells = 
-        L.sortBy compareCells $ flip (formatCells) stringOfCells $
-        drop 2 $ L.sort $ concat $ Either.rights [dirScan]
+  let knownCells = L.sortBy compareCells $ flip (formatCells) stringOfCells $ lines dirScan
   printCells knownCells
   
   -- Select manually or automatically (automatically will only connect to known networks)
@@ -199,6 +202,14 @@ main = do
   putStrLn "Lollian WLAN Helper - 2013-08-02\n"
   Xterm.setSGR [Xterm.Reset]
   
+  -- Check if root
+  user <- Env.getEnv "USER"
+  case user of
+    "root" -> return ()
+    _ -> do 
+      putStrLn "You need to run this application as root"
+      Exit.exitFailure
+
   -- Check for argvs
   argv <- Env.getArgs
   case unwords argv of
