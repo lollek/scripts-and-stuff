@@ -1,4 +1,6 @@
 *_c
+*_cpp
+*_hs
 *.class
 *.beam
 *.dump
