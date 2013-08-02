@@ -9,24 +9,13 @@ import qualified System.IO as IO
 import qualified System.Posix.Unistd as Unistd
 import qualified System.Process as SP
 
+-- Xterm colors (\033[1;31m has no power here)
 printInColor :: String -> Xterm.Color -> IO ()
 printInColor string color = do
   Xterm.setSGR [Xterm.SetConsoleIntensity Xterm.BoldIntensity]
   Xterm.setSGR [Xterm.SetColor Xterm.Foreground Xterm.Vivid color]
   putStrLn string
   Xterm.setSGR [Xterm.Reset]
-
--- Raise general error
-raiseHaikuError :: IO ()
-raiseHaikuError = do
-  printInColor "Error" Xterm.Red
-  putStrLn $ unlines 
-    [""
-    ,"Errors have occured"
-    ,"We won't tell you where of why"
-    ,"Lazy programmers"
-    ]
-  Exit.exitFailure
 
 -- Formats result from wlan0 scan
 formatCells :: [String] -> String -> [(String, String, String)]
@@ -40,16 +29,17 @@ formatCells accessPoints =
       | otherwise = "0"
     quality = show . floor . (*0.7) . read . take 2 . drop 28 . (!!3) . lines
         
--- Compare cells by 1: encrypt / 2: quality        
+-- Compare cells - used to sort them
 compareCells :: Ord a => (a, a, a) -> (a, a, a) -> Ordering
-compareCells (q1, e1, _) (q2, e2, _)
-  | e1 < e2 = GT
-  | e1 > e2 = LT
-  | q1 < q2 = GT
-  | q1 > q2 = LT
+compareCells (quality1, enc1, _) (quality2, enc2, _)
+  | enc1 < enc2 = GT
+  | enc1 > enc2 = LT
+  | quality1 < quality2 = GT
+  | quality1 > quality2 = LT
   | otherwise = EQ
 
 -- Prints the cells from FormatCells
+-- FIX: If (length quality == 1) it looks ugly
 printCells :: [(String, String, String)] -> IO ()
 printCells cellList = do
   putStrLn $ show (length cellList) ++ " access points found \n"
@@ -68,41 +58,48 @@ printCells cellList = do
   
 -- Connects to access point
 wpaSupplicant :: (String, String, String) -> IO ()
--- Unknown encrypted
-wpaSupplicant (_, "0", essid) = do
+-- Unknown encrypted access point
+wpaSupplicant (_, "0", essid) = do 
   putStrLn $ "Attempting to connect to " ++ essid
   putStr "Password: "
   IO.hFlush IO.stdout
   
+  -- Create temp WPA PSK
   passwd <- getLine --FIX: Can fail
   putStr "Generating WPA PSK ... "
   IO.hFlush IO.stdout
-  (passCode, passStdOut, _) <- SP.readProcessWithExitCode "wpa_passphrase" [essid, passwd] []
-  case passCode of
-    Exit.ExitFailure _ -> raiseHaikuError
+  (wpapCode, wpapOut, wpapErr) <-SP.readProcessWithExitCode "wpa_passphrase" [essid, passwd] []
+  case wpapCode of
+    Exit.ExitFailure _ -> do 
+      printInColor ("Error\n" ++ wpapErr) Xterm.Red
+      Exit.exitFailure
     _ -> return ()
   
-  (path, handle) <- IO.openTempFile "/tmp" ("wlan.hs."++essid) --FIX: Can fail
-  printInColor ("OK: "++path) Xterm.Green
-  IO.hPutStrLn handle passStdOut
-  IO.hClose handle
+  (ioPath, ioHandle) <- IO.openTempFile "/tmp" ("wlan.hs."++essid) --FIX: Can fail?
+  printInColor ("OK: " ++ ioPath) Xterm.Green
+  IO.hPutStrLn ioHandle wpapOut
+  IO.hClose ioHandle
   putStr "Configuring connection ... "
   IO.hFlush IO.stdout
   
-  (wpaCode, _, _) <- SP.readProcessWithExitCode "wpa_supplicant"
-                     (words ("-B -i wlan0 -D nl80211 -c "++path)) []
-  case wpaCode of
-    Exit.ExitFailure _ -> raiseHaikuError
+  -- Try connecting
+  (wpasCode, _, wpasErr) <- SP.readProcessWithExitCode "wpa_supplicant"
+                            (words ("-B -i wlan0 -D nl80211 -c "++ioPath)) []
+  case wpasCode of
+    Exit.ExitFailure _ -> do
+      printInColor ("Error\n" ++ wpasErr) Xterm.Red
+      Exit.exitFailure
     _ -> printInColor "OK" Xterm.Green
-    
   dhClient
   
   -- If successfull - save the WPA PSK
   putStr "Storing password for later use ... "
   IO.hFlush IO.stdout
-  (mvCode, mvOut, mvErr) <- SP.readProcessWithExitCode "mv" [path, "/root/wlan/"++essid] []
+  (mvCode, mvOut, mvErr) <- SP.readProcessWithExitCode "mv" [ioPath, "/root/wlan/"++essid] []
   case mvCode of
-    Exit.ExitFailure _ -> printInColor ("Error\n" ++ mvErr) Xterm.Red
+    Exit.ExitFailure _ -> do
+      printInColor ("Error\n" ++ mvErr) Xterm.Red
+      Exit.exitFailure
     _ -> printInColor "OK" Xterm.Green
     
 -- Known / unencrypted    
@@ -111,16 +108,17 @@ wpaSupplicant (_, enc, essid) = do
   putStr "Configuring connection ... "
   IO.hFlush IO.stdout
   
-  (wpaCode, _, _) <- 
+  (wpaCode, _, wpaErr) <- 
     case enc of
       "2" -> SP.readProcessWithExitCode "wpa_supplicant"
              (words ("-B -i wlan0 -D nl80211 -c /root/wlan/" ++ essid)) []
       _ -> SP.readProcessWithExitCode "iwconfig" ["wlan0", "essid", essid] []
-      
-  case wpaCode of
-    Exit.ExitFailure _ -> raiseHaikuError
-    _ -> printInColor "OK" Xterm.Green
   
+  case wpaCode of
+    Exit.ExitFailure _ -> do
+      printInColor ("Error\n" ++ wpaErr) Xterm.Red
+      Exit.exitFailure
+    _ -> printInColor "OK" Xterm.Green
   dhClient
         
 -- Start dhcp service
@@ -128,10 +126,10 @@ dhClient :: IO ()
 dhClient = do
   putStr "Waiting for an IP address ... "
   IO.hFlush IO.stdout
-  (dhCode, _, _) <- SP.readProcessWithExitCode "dhclient" ["wlan0", "-1"] []
+  (dhCode, _, dhErr) <- SP.readProcessWithExitCode "dhclient" ["wlan0", "-1"] []
   case dhCode of 
     Exit.ExitFailure _ -> do -- FIX: Kill wpa_supplicant here
-      printInColor "Error - No IP received" Xterm.Red
+      printInColor ("Error\n" ++ dhErr) Xterm.Red
       Exit.exitFailure
     _ -> printInColor "OK" Xterm.Green
 
@@ -141,18 +139,18 @@ wlanKill = do
   let processes = ["dhclient", "wpa_supplicant"] in do
     putStr $ ("Killing " ++ (unwords (L.intersperse "/" processes)) ++ " ... ")
     IO.hFlush IO.stdout
-    (killCode, _, killStdErr) <- SP.readProcessWithExitCode "killall" processes []
+    (killCode, _, killErr) <- SP.readProcessWithExitCode "killall" processes []
   
     case killCode of
-      Exit.ExitFailure _ -> printInColor ("Error:\n" ++ killStdErr) Xterm.Red
+      Exit.ExitFailure _ -> printInColor ("Error\n" ++ killErr) Xterm.Red
       _ -> printInColor "OK" Xterm.Green
   
   putStr "Setting wlan0 to up ... "
   IO.hFlush IO.stdout
   Unistd.sleep 2
-  (ifCode, _, _) <- SP.readProcessWithExitCode "ifconfig" (words "wlan0 up") []
+  (ifCode, _, ifErr) <- SP.readProcessWithExitCode "ifconfig" (words "wlan0 up") []
   case ifCode of
-    Exit.ExitFailure _ -> printInColor "Failed" Xterm.Red
+    Exit.ExitFailure _ -> printInColor ("Error\n" ++ ifErr) Xterm.Red
     _ -> printInColor "OK" Xterm.Green
     
   Exit.exitSuccess
@@ -162,31 +160,32 @@ connect mode = do
   -- List known access points
   putStr "Checking for known access points ... "
   IO.hFlush IO.stdout
-  (dirErr, dirScan, dirFail) <- SP.readProcessWithExitCode "ls" ["/root/wlan"] []
-  case dirErr of
+  (dirCode, dirOut, dirErr) <- SP.readProcessWithExitCode "ls" ["/root/wlan"] []
+  case dirCode of
     Exit.ExitFailure _ -> do
-      printInColor ("Error\n" ++ dirFail) Xterm.Red
+      printInColor ("Error\n" ++ dirErr) Xterm.Red
       Exit.exitFailure
     _ -> printInColor "OK" Xterm.Green  
       
   -- Try to check for nearby access points
   putStr "Scanning for access points ... "
   IO.hFlush IO.stdout
-  (exitCode, stringOfCells, _) <- SP.readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
-  case exitCode of
-    Exit.ExitFailure _ -> raiseHaikuError
+  (iwCode, iwOut, iwErr) <- SP.readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
+  case iwCode of
+    Exit.ExitFailure _ -> printInColor ("Error\n" ++ iwErr) Xterm.Red
     _ -> printInColor "OK" Xterm.Green
     
   -- Print them out
-  let knownCells = L.sortBy compareCells $ flip (formatCells) stringOfCells $ lines dirScan
+  let knownCells = L.sortBy compareCells $ flip (formatCells) iwOut $ lines dirOut
   printCells knownCells
   
   -- Select manually or automatically (automatically will only connect to known networks)
   case mode of
+    "list" -> Exit.exitSuccess
     "auto" -> do
-      let (q, c, e) = (knownCells !! 0) in
+      let topCell@(q, c, e) = (knownCells !! 0) in
         if c == "2" 
-        then wpaSupplicant (knownCells !! 0)
+        then wpaSupplicant topCell
         else putStrLn "No known access point found"
     _ -> do
       putStrLn $ "Select WLAN to connect to (1-" ++ 
@@ -215,6 +214,7 @@ main = do
   case unwords argv of
     "auto" -> connect "auto"
     "man" -> connect "man"
+    "list" -> connect "list"
     "kill" -> wlanKill
     _ -> putStrLn $ unlines
          ["Usage: wlan <mode>"
