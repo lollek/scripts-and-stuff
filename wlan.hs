@@ -31,19 +31,16 @@ raiseHaikuError = do
   Exit.exitFailure
 
 -- Formats result from wlan0 scan
-  -- FIX: Shouldn't I sort them, maybe?
 formatCells :: [String] -> String -> [(String, String, String)]
-formatCells accessPoints = map formatCell . drop 1 . LS.splitOn "Cell"
-  where 
-    formatCell c = (quality c, enc c, essid c)
-      where
-        essid = init . drop 27 . (!!5) . lines
-        enc c
-          | essid c `elem` accessPoints = "2"
-          | drop 35 ((lines c) !! 4) == "off" = "1"
-          | otherwise = "0"
-        quality = toPercent . take 2 . drop 28 . (!!3) . lines
-          where toPercent = show . floor . (/70) . (*100) . read
+formatCells accessPoints = 
+  map (\c -> (quality c, enc c, essid c)) . drop 1 . LS.splitOn "Cell"
+  where
+    essid = init . drop 27 . (!!5) . lines
+    enc c
+      | essid c `elem` accessPoints = "2"
+      | drop 35 ((lines c) !! 4) == "off" = "1"
+      | otherwise = "0"
+    quality = show . floor . (/70) . (*100) . read . take 2 . drop 28 . (!!3) . lines
         
 -- Compare cells by 1: encrypt / 2: quality        
 compareCells :: Ord a => (a, a, a) -> (a, a, a) -> Ordering
