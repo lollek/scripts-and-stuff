@@ -79,8 +79,7 @@ wpaSupplicant (_, "0", essid) = do
   passwd <- getLine --FIX: Can fail
   putStr "Generating WPA PSK ... "
   IO.hFlush IO.stdout
-  (passCode, passStdOut, _) <- SP.readProcessWithExitCode "wpa_passphrase" 
-                               [essid, passwd] []
+  (passCode, passStdOut, _) <- SP.readProcessWithExitCode "wpa_passphrase" [essid, passwd] []
   case passCode of
     Exit.ExitFailure _ -> raiseHaikuError
     _ -> return ()
@@ -92,7 +91,7 @@ wpaSupplicant (_, "0", essid) = do
   putStr "Configuring connection ... "
   IO.hFlush IO.stdout
   
-  (wpaCode, _, _) <- SP.readProcessWithExitCode "/sbin/wpa_supplicant"
+  (wpaCode, _, _) <- SP.readProcessWithExitCode "wpa_supplicant"
                      (words ("-B -i wlan0 -D nl80211 -c "++path)) []
   case wpaCode of
     Exit.ExitFailure _ -> raiseHaikuError
@@ -109,9 +108,9 @@ wpaSupplicant (_, enc, essid) = do
   
   (wpaCode, _, _) <- 
     case enc of
-      "2" -> SP.readProcessWithExitCode "/sbin/wpa_supplicant"
+      "2" -> SP.readProcessWithExitCode "wpa_supplicant"
              (words ("-B -i wlan0 -D nl80211 -c /root/wlan/" ++ essid)) []
-      _ -> SP.readProcessWithExitCode "/sbin/iwconfig" ["wlan0", "essid", essid] []
+      _ -> SP.readProcessWithExitCode "iwconfig" ["wlan0", "essid", essid] []
       
   case wpaCode of
     Exit.ExitFailure _ -> raiseHaikuError
@@ -124,7 +123,7 @@ dhClient :: IO ()
 dhClient = do
   putStr "Waiting for an IP address ... "
   IO.hFlush IO.stdout
-  (dhCode, _, _) <- SP.readProcessWithExitCode "/sbin/dhclient" ["wlan0", "-1"] []
+  (dhCode, _, _) <- SP.readProcessWithExitCode "dhclient" ["wlan0", "-1"] []
   case dhCode of 
     Exit.ExitFailure _ -> do -- FIX: Kill wpa_supplicant here
       printInColor "Error - No IP received" Xterm.Red
@@ -146,7 +145,7 @@ wlanKill = do
   putStr "Setting wlan0 to up ... "
   IO.hFlush IO.stdout
   Unistd.sleep 1
-  (ifCode, _, _) <- SP.readProcessWithExitCode "/sbin/ifconfig" (words "wlan0 up") []
+  (ifCode, _, _) <- SP.readProcessWithExitCode "ifconfig" (words "wlan0 up") []
   case ifCode of
     Exit.ExitFailure _ -> printInColor "Failed" Xterm.Red
     _ -> printInColor "OK" Xterm.Green
@@ -168,7 +167,7 @@ connect mode = do
   -- Try to check for nearby access points
   putStr "Scanning for access points ... "
   IO.hFlush IO.stdout
-  (exitCode, stringOfCells, _) <- SP.readProcessWithExitCode "/sbin/iwlist" ["wlan0", "scan"][]
+  (exitCode, stringOfCells, _) <- SP.readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
   case exitCode of
     Exit.ExitFailure _ -> raiseHaikuError
     _ -> printInColor "OK" Xterm.Green
