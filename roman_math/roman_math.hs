@@ -20,22 +20,24 @@ romeFromInt c
   | c >= 1    = "I"  ++ romeFromInt(c - 1)
   | otherwise = ""
                 
-intFromRome :: String -> Int       
-intFromRome ('M':t)     = 1000 + intFromRome t
-intFromRome ('D':t)     = 500 + intFromRome t
-intFromRome ('C':'M':t) = 900 + intFromRome t
-intFromRome ('C':'D':t) = 400 + intFromRome t
-intFromRome ('C':t)     = 100 + intFromRome t
-intFromRome ('L':t)     = 50 + intFromRome t
-intFromRome ('X':'C':t) = 90 + intFromRome t
-intFromRome ('X':'L':t) = 40 + intFromRome t
-intFromRome ('X':t)     = 10 + intFromRome t
-intFromRome ('V':t)     = 5 + intFromRome t
-intFromRome ('I':'X':t) = 9 + intFromRome t
-intFromRome ('I':'V':t) = 4 + intFromRome t
-intFromRome ('I':t)     = 1 + intFromRome t
-intFromRome ""          = 0
-intFromRome (h:t)       = intFromRome t
+intFromRome :: String -> Int
+intFromRome (x:s:xs)
+  | x == 'C' && s == 'M' = 900 + intFromRome xs
+  | x == 'C' && s == 'D' = 400 + intFromRome xs
+  | x == 'X' && s == 'C' = 90 + intFromRome xs
+  | x == 'X' && s == 'L' = 40 + intFromRome xs
+  | x == 'I' && s == 'X' = 9 + intFromRome xs
+  | x == 'I' && s == 'V' = 4 + intFromRome xs
+intFromRome (x:xs)
+  | x == 'M'  = 1000 + intFromRome xs
+  | x == 'D'  = 500 + intFromRome xs
+  | x == 'C'  = 100 + intFromRome xs
+  | x == 'L'  = 50 + intFromRome xs
+  | x == 'X'  = 10 + intFromRome xs
+  | x == 'V'  = 5 + intFromRome xs
+  | x == 'I'  = 1 + intFromRome xs
+  | otherwise = intFromRome xs
+intFromRome "" = 0
 
 usage :: IO ()
 usage = putStrLn $ unlines [

@@ -95,7 +95,7 @@ wpaSupplicant (_, "0", essid) = do
   -- If successfull - save the WPA PSK
   putStr "Storing password for later use ... "
   IO.hFlush IO.stdout
-  (mvCode, mvOut, mvErr) <- SP.readProcessWithExitCode "mv" [ioPath, "/root/wlan/"++essid] []
+  (mvCode, _, mvErr) <- SP.readProcessWithExitCode "mv" [ioPath, "/root/wlan/"++essid] []
   case mvCode of
     Exit.ExitFailure _ -> do
       printInColor ("Error\n" ++ mvErr) Xterm.Red
@@ -172,7 +172,9 @@ connect mode = do
   IO.hFlush IO.stdout
   (iwCode, iwOut, iwErr) <- SP.readProcessWithExitCode "iwlist" ["wlan0", "scan"] []
   case iwCode of
-    Exit.ExitFailure _ -> printInColor ("Error\n" ++ iwErr) Xterm.Red
+    Exit.ExitFailure _ -> do
+      printInColor ("Error\n" ++ iwErr) Xterm.Red
+      Exit.exitFailure
     _ -> printInColor "OK" Xterm.Green
     
   -- Print them out
