@@ -1,24 +1,23 @@
 -module(guess_number).
 -export([guess_number/0]).
 
-guess_number(Solution, Num) ->
-    io:format("Guess ~w: ", [Num]),
+take_guess(Solution, Num) ->
+    io:format("Guess ~w: ", [Num +1]),
     {ok, [Guess]} = io:fread("", "~d"),
+    check_guess(Guess, Solution, Num +1).
 
-    if
-        Guess == Solution ->
-            io:fwrite("Correct! You have won!\n"),
-            init:stop();
-        Num == 5 ->
-            io:format("Haha, I won! The number was ~w~n", [Solution]),
-            init:stop();
-        Guess > Solution ->
-            io:fwrite("Too high! Try again!\n"),
-            guess_number(Solution, Num + 1);
-        true -> % Guess < Solution
-            io:fwrite("Too low! Try again!\n"),
-            guess_number(Solution, Num + 1)
-    end.
+check_guess(Solution, Solution, _) ->
+    io:fwrite("Correct! You have won!\n"),
+    init:stop();
+check_guess(_, Solution, 5) ->
+    io:format("Haha, I won! The number was ~w~n", [Solution]),
+    init:stop();
+check_guess(Guess, Solution, Num) when Guess > Solution ->
+    io:fwrite("Too high! Try again!\n"),
+    take_guess(Solution, Num);
+check_guess(Guess, Solution, Num) when Guess < Solution ->
+    io:fwrite("Too low! Try again!\n"),
+    take_guess(Solution, Num).
 
 guess_number() ->
     random:seed(now()),
@@ -28,7 +27,7 @@ guess_number() ->
     io:fwrite("I am thinking of a number between 1 and 100.\n"),
     io:fwrite("You have 5 tries to guess it correctly or I win.\n"),
     io:fwrite("What's your guess?\n"),
-    guess_number(Solution, 1).
+    take_guess(Solution, 0).
 
     
 % TAIL INFO:
