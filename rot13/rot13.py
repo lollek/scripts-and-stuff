@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from sys import argv
+from sys import argv, stdin
 
 def rot13(sentence):
 
@@ -14,19 +14,16 @@ def rot13(sentence):
         else:
             new_sentence += letter
 
-    print(new_sentence)
+    print(new_sentence, end="")
 
-# No arguments means a loop:
+# No arguments means a pipe:
 if len(argv) == 1:
-    try:
-        while 1:
-            rot13(input())
-    except EOFError: pass
-    except KeyboardInterrupt: pass
+    for line in stdin:
+        rot13(line)
 
 # Otherwise we'll rot13 the arguments:
 else:
-    rot13(" ".join(argv[1:]))
+    rot13(" ".join(argv[1:]+["\n"]))
 
 """ TAIL INFO:
 Name ROT13
@@ -36,6 +33,6 @@ State: Done
 Rot13 a string
 
 
-
 Example: ./rot13.py hello world
+Example2: echo "hello world" | ./rot13.py
 """
