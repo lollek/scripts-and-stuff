@@ -41,4 +41,15 @@ flatten (List (x:xs)) = flatten x ++ flatten (List xs)
 
 -- Remove consecutive duplicates in a list
 compress :: Eq a => [a] -> [a]
---compress (x:xs) = x:compress xs
+compress [] = []
+compress (x:xs) = x:(compress (dropWhile (==x) xs))
+
+-- Pack consecutive duplicates of list elements into sublists
+pack :: Eq a => [a] -> [[a]]
+pack [] = []
+pack (x:xs) = (x:(takeWhile (==x) xs)): pack(dropWhile (==x) xs)
+
+-- Length-encode a list
+encode :: Eq a => [a] -> [(Int, a)]
+encode [] = []
+encode xs@(x:xs') = (length (takeWhile (==x) xs), x): encode (dropWhile (==x) xs')
