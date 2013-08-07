@@ -200,7 +200,7 @@ connect mode = do
 main = do
   -- Print header
   Xterm.setSGR [Xterm.SetUnderlining Xterm.SingleUnderline]
-  putStrLn "Lollian WLAN Helper - 2013-08-02\n"
+  putStrLn "Lollian WLAN-no-X11 - 2013-08-07\n"
   Xterm.setSGR [Xterm.Reset]
   
   -- Check if root
@@ -219,10 +219,11 @@ main = do
     "list" -> connect "list"
     "kill" -> wlanKill
     _ -> putStrLn $ unlines
-         ["Usage: wlan <mode>"
+         ["Usage: wlan-no-x11 <mode>"
          ,"Modes:"
          ," auto   - automatically connect to best access point"
          ," man    - manually select an access point"
+         ," list   - list all access points in the vicinity"
          ," kill   - kill wpa_supplicant and dhclient"
          ]
 
@@ -230,13 +231,13 @@ main = do
               
                     
 -- TAIL INFO:
--- Name: Lollian Wlan Scan and Connect
+-- Name: Lollian WLAN-no-X11
 -- Language: Haskell
 -- Compile: ghc --make wlan.hs
--- State: Done w/ bugs
+-- State: Done
 --
 -- Find and connect to wireless access points
 -- WPA Passwords should also be stored under /root/wlan
 --
--- Example: ./wlan
+-- Example: ./wlan auto
 --
