@@ -49,3 +49,15 @@ printSolution (a:b:c:d:e:f:g:h:i:j) =
                      ]
 
 main = manageLevel 0 initDeck []
+
+-- TAIL INFO:
+-- Name: Witch Game Solver
+-- Language: Haskell
+-- Compile: ghc --make witchsolver.hs
+-- State: Done
+-- Created: 2013-08-07
+
+-- This application solves the Witch game (crazykamo)
+-- Result is written in number, representing the cards in the game
+-- Compare result to crazykamo/kamo.png for true result
+--
