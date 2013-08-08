@@ -7,11 +7,10 @@ unsigned long fib(int rot) {
   unsigned long new_value = 0;
   unsigned long tmp;
 
-  while (rot > 0) {
+  while (--rot >= 0) {
     tmp = old_value;
     old_value = new_value;
     new_value = tmp + old_value;
-    rot -= 1;
   }
   return new_value;
 }
