@@ -3,9 +3,9 @@ use Ada.Text_IO, Ada.Integer_Text_IO, Ada.Command_Line;
 
 procedure Fibonacci is
    
-   function GetArg return Positive is
+   function GetArg return Natural is
    begin
-      return Positive'Value (Argument (1));
+      return Natural'Value (Argument (1));
    end GetArg;
    
    function Fib (N : Natural) return Natural is
@@ -32,3 +32,15 @@ begin
         end loop;
    end if;
 end Fibonacci;
+
+-- TAIL INFO:
+-- Name: Fibonacci Sequence
+-- Language: Ada
+-- Compile: gnatmake fibonacci.adb
+-- State: Done
+-- Created: 2013-08-08
+--
+-- Returns numbers from the fibonacci sequence
+--
+-- Example1: ./fibonacci
+-- Example2: ./fibonacci 42
