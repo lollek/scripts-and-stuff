@@ -13,8 +13,7 @@ main = do
   if length argv == 1 then
     putStrLn $ fib $ read $ unwords argv
     else
-    putStr $ unlines $ map fib [0..19]
-
+    mapM_ (\x -> putStrLn (fib x ++ "\t" ++ fib (x+10))) [0..9]
   
 -- TAIL INFO
 -- Name: Fibonacci Sequence
