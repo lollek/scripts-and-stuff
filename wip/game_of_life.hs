@@ -2,6 +2,10 @@ import qualified System.Environment as Env
 import qualified System.Random as Rand
 import qualified Graphics.UI.SDL as SDL
 
+initMap :: Rand.RandomGen g => Int -> g -> [Int]
+initMap i = take i . Rand.randomRs (0, 1)
+  
+
 main = do
   
   -- Handle arguments
@@ -12,11 +16,20 @@ main = do
       _ -> error "Usage: ./game_of_life <width> <height>"
     _ -> error "Usage: ./game_of_life <width> <height>"
   
-  putStrLn $ "Width: " ++ show argW ++ ", Height: " ++ show argH
+  -- Create random number generator:
+  stdGen <- Rand.getStdGen
+  -- world = initMap (argW * argH) stdGen
   
   
-  --SDL.init [SDL.InitEverything]
-
+  -- Init SDL
+  SDL.init [SDL.InitEverything]
+  SDL.setVideoMode argW argH 32 []
+  SDL.setCaption "Game of Life" "Game of Life"
+  --stdscr <- SDL.getVideoSurface
+  
+  
+  -- SDL.flip stdscr
+  SDL.quit
 
 -- TAIL INFO:
 -- Name: Game of Life
