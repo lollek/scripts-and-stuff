@@ -1,24 +1,24 @@
 module Main where
 
-import System.Environment
-import Data.Char
+import qualified System.Environment as Env
+import qualified Data.Char as Char
 
 romeFromInt :: Int -> String
 romeFromInt c
-  | c >= 1000 = "M"  ++ romeFromInt(c - 1000)
-  | c >= 900  = "CM" ++ romeFromInt(c - 900)
-  | c >= 500  = "D"  ++ romeFromInt(c - 500)
-  | c >= 400  = "CD" ++ romeFromInt(c - 400)
-  | c >= 100  = "C"  ++ romeFromInt(c - 100)
-  | c >= 90   = "XC" ++ romeFromInt(c - 90)
-  | c >= 50   = "L"  ++ romeFromInt(c - 50)
-  | c >= 40   = "XL" ++ romeFromInt(c - 40)
-  | c >= 10   = "X"  ++ romeFromInt(c - 10)
-  | c >= 9    = "IX" ++ romeFromInt(c - 9)
-  | c >= 5    = "V"  ++ romeFromInt(c - 5)
-  | c >= 4    = "IV" ++ romeFromInt(c - 4)
-  | c >= 1    = "I"  ++ romeFromInt(c - 1)
-  | otherwise = ""
+  | c >= 1000 = 'M'    : romeFromInt(c - 1000)
+  | c >= 900  = 'C':'M': romeFromInt(c - 900)
+  | c >= 500  = 'D'    : romeFromInt(c - 500)
+  | c >= 400  = 'C':'D': romeFromInt(c - 400)
+  | c >= 100  = 'C'    : romeFromInt(c - 100)
+  | c >= 90   = 'X':'C': romeFromInt(c - 90)
+  | c >= 50   = 'L'    : romeFromInt(c - 50)
+  | c >= 40   = 'X':'L': romeFromInt(c - 40)
+  | c >= 10   = 'X'    : romeFromInt(c - 10)
+  | c >= 9    = 'I':'X': romeFromInt(c - 9)
+  | c >= 5    = 'V'    : romeFromInt(c - 5)
+  | c >= 4    = 'I':'V': romeFromInt(c - 4)
+  | c >= 1    = 'I'    : romeFromInt(c - 1)
+  | otherwise = []
                 
 intFromRome :: String -> Int
 intFromRome (x:s:xs)
@@ -39,27 +39,25 @@ intFromRome (x:xs)
   | otherwise = intFromRome xs
 intFromRome "" = 0
 
-usage :: IO ()
-usage = putStrLn $ unlines [
-  "Example usages:",
-  "\t./roman_math XVI",
-  "\t./roman_math 15"]
-
 convert :: String -> IO ()
 convert num = do
-  if all isDigit num then
-    putStrLn $ romeFromInt (read num :: Int)
-    else if all isAlpha num then
-           print $ intFromRome num
-         else
-           putStrLn "Unknown"
+  if all Char.isDigit num 
+    then putStrLn $ romeFromInt (read num :: Int)
+    else if all Char.isAlpha num 
+         then print $ intFromRome num
+         else putStrLn "Unknown"
 
 main = do 
-  argv <- getArgs
-  if (length argv > 0) then
-    convert (argv !! 0)
-    else
-    usage
+  argv <- Env.getArgs
+  if (length argv > 0) 
+    then convert (argv !! 0)
+    else putStrLn $ unlines 
+         ["Example usages:"
+         ,"\t./roman_math XVI"
+         ,"\t./roman_math 15"
+         ]
+
+
 
 
 -- TAIL INFO:
