@@ -1,4 +1,4 @@
-#! /usr/bin/env python3.2
+#! /usr/bin/env python3
 # Created: 2013-02 - Olle K
 
 #ver 0.1 - \

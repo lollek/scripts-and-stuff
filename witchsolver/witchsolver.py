@@ -1,4 +1,4 @@
-#! /usr/bin/env python3.2
+#! /usr/bin/env python3
 
 P_HEAD, P_TAIL = 1, -1
 R_HEAD, R_TAIL = 2, -2
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     
 """ TAIL INFO:
 Name: Witch Game Solver
-Language: Python 3.2
+Language: Python 3
 State: Done
 
 This application solves the Witch game (crazykamo)
