@@ -1,0 +1,33 @@
+# Olle K's TCSHRC for use in solaris 10
+# Created 26 August 2013
+# Last updated 26 August 2013
+
+# Set PS1 - Should there be colors here maybe?
+set prompt = "%n@%m %~ %#"
+
+# Make sure screen does not mess up my term
+setenv TERM xterm
+
+# Reverse history searching is GOLD
+bindkey "^R" i-search-back
+
+# GNU is good:
+alias chmod '/sw/gnu/bin/gchmod -v'
+alias chown '/sw/gnu/bin/gchown -v'
+alias chgrp '/sw/gnu/bin/gchgrp -v'
+alias cp '/sw/gnu/bin/gcp -v'
+alias ls '/sw/gnu/bin/gls --color=auto'
+alias ln '/sw/gnu/bin/gln -v'
+alias mv '/sw/gnu/bin/gmv -v'
+alias rm '/sw/gnu/bin/grm -v'
+
+# Helpful commands:
+alias .. 'cd ..'
+alias l 'ls -lh'
+alias la 'ls -A'
+alias ll 'ls -alh'
+
+
+
+
+
