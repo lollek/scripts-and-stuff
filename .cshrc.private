@@ -3,13 +3,16 @@
 # Last updated 26 August 2013
 
 # Set PS1 - Should there be colors here maybe?
-set prompt = "%n@%m %~ %#"
+set prompt = "%n@%m %~%# "
 
 # Make sure screen does not mess up my term
 setenv TERM xterm
 
 # Reverse history searching is GOLD
 bindkey "^R" i-search-back
+
+# Emacs without colors make me sad:
+alias emacs 'emacs --color=always'
 
 # GNU is good:
 alias chmod '/sw/gnu/bin/gchmod -v'
