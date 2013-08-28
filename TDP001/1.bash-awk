@@ -1,52 +1,49 @@
-;; Parsing and sorting a list through awk
+Steg 1 - Skriv om raderna:
 
-; Goal: 
-;  Parse the file resultat.txt into sorted.txt (see them at the end)
-;  using a one-line script
+  OSB! awk i följande fall innebär egentligen gawk, vilket antagligen är det program som körs om du skriver awk
 
+  För detta steg kommer vi att använda awk, vilket är ett turing-komplett programmeringsspråk
+  
+  Kommandot vi kommer använda oss av ser ut såhär:
+    awk '$0=$3+$4+$5FS$1FS$2' resultat.txt
+  Där
+    awk är namnet på applikationen
+    '$0=$3+$4+$5FS$1FS$2' är uttrycket för hur utdata ska genereras från indata
+    resultat.txt är filen där vi tar vår indata
+    
+  Kommandot läser in en rad i taget, vilket ser ut på följande sätt:
+    Mikaela Andersson       14   -  17
+  Och ger utdata som ser följande ut:
+    31 Mikaela Andersson
+    
+  Uttrycket fungerar på följande sätt:
+    Varje rad som awk tar från filen lagrar den i variabeln $0
+    Varje rad delas också upp i ord, där det första ordet lagras i variabeln $1, den andra i $2, osv
+    Alltså är $1 i detta fall "Mikaela" och $3 är "14"
+    När uttrycket har evaluerats så skriver den automatiskt ut variabel $0,
+      därför kommer vi inte att använda någon funktion för utskrift, utan endast modifiera $0
+    Den första biten av uttrycket ($0=) betyder att resten av uttrycket kommer att lagras i variabel $0
+    Den andra biten ($3+$4+$5) innebär att vi tar variabel $3, $4 och $5 och summerar dessa,
+      i ovan exempel ger därför (14+0+17) vilket är 31. Då strecket (-) inte är en siffra så räknas det som 0
+    Den sista biten(FS $1 FS $2) fungerar på följande sätt:
+      $1 ger den första variabeln (ovan Mikaela)
+      $2 ger den andra variabeln (ovan Andersson)
+      FS betyder samma sak som mellanrum i detta fall, så den separerar resultaten av $3+$4+$5, $1 och $2
+      
+Steg 2 - Sortera raderna:
 
-; Resultat.txt:
-Mikaela Andersson       14   -  17
-David Fors               8  12  11
-Klas Hägglund            -  13   9
-Oskar Holmqvist          9  12  10
-Gustaf Karlsson         12  14  13
-Annica Rundgren         17  10  15
-Marcus Carlsson         12   9  12
-Johanna Rönnberg         9  15  13
-Josefine Carlson        18  14  16
-Magnus Ahlsten          13  18  14
-Jerker Leo               -   -  11
-Jan-Olof Kärrsgård       8  11  13
-Siv Tidblom             11   9  12
-Mats Karlzon            15  17  10
-Göran Johansson         16  19  15
-Britt Lidell             -  14   9
-Yngve Johanson          10  11   8
-Ingrid Lindgren          8  13  13
-Kjell Djurstedt         12  12  12
-Lennart Andersson        9  10  13
-Elisabeth Björklind     15  12  10
+  Då utdata från det föregående kommandot nu ligger i oordning (Raderna ska stå med högst nummer först),
+    så måste vi sortera resultatet
+    
+  Vi kommer därför lägga på |sort -r på det föregående kommandot, så det totalt ser ut såhär:
+    awk '$0=$3+$4+$5FS$1FS$2' resultat.txt|sort -r
+  Där
+    strecket (|) innebär att vi tar all utdata från det som står vänster om det och
+      ger det till programmet på höger sida (alltså sort)
+    sort sorterar varje rad så att den rad med minst nummer står överst och störst längst ner
+      då det är helt tvärtemot vad vi vill så ger vi också kommandot -r, 
+      vilket gör att sort sorterar åt andra hållet istället
+    
+Summa summarum: 
+    awk '$0=$3+$4+$5FS$1FS$2' resultat.txt|sort -r
 
-; Sorted.txt
-50 Göran Johansson
-48 Josefine Carlson
-45 Magnus Ahlsten
-42 Mats Karlzon
-42 Annica Rundgren
-39 Gustaf Karlsson
-37 Johanna Rönnberg
-37 Elisabeth Björklind
-36 Kjell Djurstedt
-34 Ingrid Lindgren
-33 Marcus Carlsson
-32 Siv Tidblom
-32 Lennart Andersson
-32 Jan-Olof Kärrsgård
-31 Oskar Holmqvist
-31 Mikaela Andersson
-31 David Fors
-29 Yngve Johanson
-23 Britt Lidell
-22 Klas Hägglund
-11 Jerker Leo
