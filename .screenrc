@@ -29,10 +29,13 @@ vbell on
 ## Changed C-a to C-\ since C-a is like the most used binding ever
 escape ^|\
 
+## XON/XOFF ruins my day
+stty -ixon
+
 ## Some startup windows:
 screen -t emacs 0 emacs -nw
-screen -t       1
-screen -t       2
+screen -t local 1 bash
+screen -t remote 2 bash
 
 #screen -t emacs 9 emacs -nw
 #screen -t irssi 9 irssi
