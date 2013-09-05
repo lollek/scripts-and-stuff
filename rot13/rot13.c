@@ -1,35 +1,28 @@
 #include <stdio.h>
+#include <ctype.h>
 
 /* Moves all [a-zA-Z] forward/backward 13 steps in the alphabet */
-void rot13(char c) {
-  if ('a' <= c && c <= 'z')
-    putchar(c+13 <= 'z'? c+13:c-13);
-  else if ('A' <= c && c <= 'Z')
-    putchar(c+13 <= 'Z'? c+13:c-13);
-  else
-    putchar(c);
+int rot13(int c) {
+  if ('a' <= tolower(c) && tolower(c) <= 'z')
+    return tolower(c)+13 <= 'z' ? c+13 : c-13;
+  return c;
 }
 
-int main( int argc, char* argv[] ) {
+int main(int argc, char* argv[] ) {
 
-  int i;
-  char c, *p;
+  int i, c;
+  char *p;
 
-  /* If no argument: try to rot13 the stdin: 
-     This will make it possible to pipe it like this:
-     > echo "Hello World" | ./rot13 
-  */
+  /* If no argument: try to rot13 the stdin */
   if (argc < 2)
     while ((c = getc(stdin)) != EOF)
-      rot13(c);
+      putchar(rot13(c));
+  return 0;
 
-  /* Otherwise, rot13 the arguments: 
-     This will make it possible to:
-     > ./rot13 Hello World 
-  */
+  /* Otherwise, rot13 the arguments */
   for (i = 1; i < argc; i++) {
     for (p = argv[i]; *p != '\0'; p++)
-      rot13(*p);
+      putchar(rot13(*p));
     putchar(' ');
   }
   putchar('\n');
