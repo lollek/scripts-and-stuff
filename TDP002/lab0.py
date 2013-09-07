@@ -1,4 +1,5 @@
 """ Uppgift 0a: """
+# -*- coding: utf-8 -*-
 
 # a) Hur kan ni avgora ifall koden exekveras som en modul eller som ett program?
 
