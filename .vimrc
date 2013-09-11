@@ -24,16 +24,18 @@ set autowrite		       " Automatically save before commands like :next and :make
 set hidden		       " Hide buffers when they are abandoned
 set backspace=indent,eol,start " Decides which chars backspace can delete
 set autoindent                 " Automatic indentation
-set smartindent                " Smart indentation
-set cindent                    " C indentation
 set ruler                      " Shows cursor position in lowerright corner
 set showcmd                    " Types which keys I've pressed to far
 "set scrolloff=999              " Tries to keep cursor to the middle of screen
 syntax on
-filetype on
-filetype plugin on
-filetype indent on
-"set mouse=a		" Enable mouse usage (all modes) - Why ??
+
+filetype plugin indent on
+" General filetypes:
+set expandtab                  " Spaces > tabs
+set shiftwidth=2               " 2 space indents
+set softtabstop=2              " 2 space indents
+" Special filetypes:
+autocmd FileType python setlocal expandtab shiftwidth=4 softtabstop=4
 
 " Source a global configuration file if available
 if filereadable("/etc/vim/vimrc.local")
