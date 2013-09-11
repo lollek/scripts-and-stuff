@@ -28,12 +28,12 @@ set smartindent                " Smart indentation
 set cindent                    " C indentation
 set ruler                      " Shows cursor position in lowerright corner
 set showcmd                    " Types which keys I've pressed to far
-set scrolloff=999              " Tries to keep cursor to the middle of screen
+"set scrolloff=999              " Tries to keep cursor to the middle of screen
 syntax on
 filetype on
 filetype plugin on
 filetype indent on
-"set mouse=a		" Enable mouse usage (all modes)
+"set mouse=a		" Enable mouse usage (all modes) - Why ??
 
 " Source a global configuration file if available
 if filereadable("/etc/vim/vimrc.local")
@@ -44,4 +44,9 @@ endif
 nnoremap <C-n> :bnext<CR>
 nnoremap <C-p> :bprevious<CR>
 
+" To keep me out of INSERT-mode
+inoremap <Left>  <NOP>
+inoremap <Right> <NOP>
+inoremap <Up>    <NOP>
+inoremap <Down>  <NOP>
 
