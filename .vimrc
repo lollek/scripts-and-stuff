@@ -12,25 +12,35 @@ runtime! debian.vim
 
 set nocompatible
 set background=dark
+syntax on
+set t_Co=256
+colorscheme delek
+
+" Colorschemes :
+" delek
+" pablo
+
+"" Searching:
+" Incremental, case insensitive, highlighted search:
+set incsearch ignorecase hlsearch  
+" Press space to quit search:
+nnoremap <silent> <Space> :silent noh<Bar>echo<CR>
 
 " The following are commented out as they cause vim to behave a lot
 " differently from regular Vi. They are highly recommended though.
 set showcmd		       " Show (partial) command in status line.
 set showmatch		       " Show matching brackets.
-set ignorecase		       " Do case insensitive matching
 set smartcase		       " Do smart case matching
-set incsearch		       " Incremental search
 set autowrite		       " Automatically save before commands like :next and :make
 set hidden		       " Hide buffers when they are abandoned
 set backspace=indent,eol,start " Decides which chars backspace can delete
-set autoindent                 " Automatic indentation
 set ruler                      " Shows cursor position in lowerright corner
-set showcmd                    " Types which keys I've pressed to far
 "set scrolloff=999              " Tries to keep cursor to the middle of screen
-syntax on
 
+"" Indenting and Filetypes:
 filetype plugin indent on
 " General filetypes:
+set autoindent                 " Automatic indentation
 set expandtab                  " Spaces > tabs
 set shiftwidth=2               " 2 space indents
 set softtabstop=2              " 2 space indents
