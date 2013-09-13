@@ -35,6 +35,9 @@ set autowrite		       " Automatically save before commands like :next and :make
 set hidden		       " Hide buffers when they are abandoned
 set backspace=indent,eol,start " Decides which chars backspace can delete
 set ruler                      " Shows cursor position in lowerright corner
+set number
+set backupdir=~/.vim/backup    " Move backups here
+set dir=~/.vim/backup
 "set scrolloff=999              " Tries to keep cursor to the middle of screen
 
 "" Indenting and Filetypes:
@@ -46,11 +49,6 @@ set shiftwidth=2               " 2 space indents
 set softtabstop=2              " 2 space indents
 " Special filetypes:
 autocmd FileType python setlocal expandtab shiftwidth=4 softtabstop=4
-
-" Source a global configuration file if available
-if filereadable("/etc/vim/vimrc.local")
-  source /etc/vim/vimrc.local
-endif
 
 " Quick switching between buffers:
 nnoremap <C-n> :bnext<CR>

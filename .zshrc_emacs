@@ -1,5 +1,6 @@
-# Created 2013-03-07
-# Last Update: 2013-05-25
+## Created 2013-03-07
+## Last Update: 2013-05-25
+## Olle K zshrc for emacs
 
 HISTFILE=~/.histfile
 HISTSIZE=1000
