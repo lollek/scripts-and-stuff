@@ -1,0 +1,55 @@
+## Created 2013-09-13
+## Updated 2013-09-13
+## Olle K zshrc for baam
+# Was originally gonna do this for vim use, but bindkey -v wasn't my thing
+# The following lines were added by compinstall
+
+
+zstyle :compinstall filename '/home/iix/.zshrc'
+
+autoload -Uz compinit && compinit
+
+setopt COMPLETE_IN_WORD    # Complete from both ends of a word.
+setopt ALWAYS_TO_END       # Move cursor to the end of a completed word.
+setopt PATH_DIRS           # Perform path search even on command names with slashes.
+setopt AUTO_MENU           # Show completion menu on a succesive tab press.
+setopt AUTO_LIST           # Automatically list choices on ambiguous completion.
+setopt AUTO_PARAM_SLASH    # If completed parameter is a directory, add a trailing slash.
+unsetopt MENU_COMPLETE     # Do not autoselect the first completion entry.
+unsetopt FLOW_CONTROL      # Disable start/stop characters in shell editor.
+unsetopt CASE_GLOB
+
+# Use caching to make completion for cammands such as dpkg and apt usable.
+zstyle ':completion::complete:*' use-cache on
+zstyle ':completion::complete:*' cache-path "${ZDOTDIR:-$HOME}/.zcompcache"
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+autoload -U promptinit && promptinit
+prompt adam2
+
+HISTFILE=~/.histfile
+HISTSIZE=1000
+SAVEHIST=10000
+setopt appendhistory beep extendedglob nomatch notify
+bindkey -e
+setopt HIST_IGNORE_DUPS
+ 
+alias ..='cd ..'
+
+## ls
+alias ls='/bin/ls --color=auto'
+alias la='ls -A'
+alias l='ls -lh --group-directories-first'
+alias ll='ls -alh --group-directories-first'
+
+## Verbosity is nice
+alias ln='ln -v'
+alias chmod='chmod -v'
+alias chown='chown -v'
+alias chgrp='chgrp -v'
+alias mv='mv -v'
+alias cp='cp -v'
+alias rm='rm -v'
+
+# Clear screen at login (Since I always login from crosh)
+clear
