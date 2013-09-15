@@ -16,16 +16,15 @@ function shuffleList(list) {
 /** defragList
  * Removes all null elements from list */
 function defragList(list) {
-  for (var i = 0; i < list.length;) 
-    if (list[i] == null) { 
-      for (var j = list.length -1; j > i;)
+  for (var i = list.length; i;) 
+    if (list[--i] == null) {
+      for (var j = 0; j < i; j++)
         if (list[j] != null) {
           list[i] = list[j];
-          list[j] = null;
+          list[j] = undefined;
         }
-      if (i == j)
-        break;
+      if (i == j) break;
     }
-  while(list[-1] == null)
-    list.pop();
+  while(list.length && list[0] == null)
+    list.shift();
 }
