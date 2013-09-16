@@ -33,9 +33,9 @@ escape ^|\
 stty -ixon
 
 ## Some startup windows:
-screen -t emacs 0 emacs -nw
-screen -t local 1 bash
-screen -t remote 2 bash
+screen -t editor 0 zsh
+screen -t local 1 zsh
+screen -t remote 2 zsh
 
 #screen -t emacs 9 emacs -nw
 #screen -t irssi 9 irssi
