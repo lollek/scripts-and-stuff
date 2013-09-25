@@ -22,6 +22,11 @@ if ( `uname` == "SunOS") then
     if ( -x /sw/vim-7.3/bin/vim_nogtk ) alias vim '/sw/vim-7.3/bin/vim_nogtk'
   endif
   
+  # Same with svn:
+  if (! `which svn 2> /dev/null` ) then
+    if ( -x /sw/subversion-1.6.17/bin/svn ) alias svn '/sw/subversion-1.6.17/bin/svn'
+  endif
+
   # GNU is good:
   if ( -x /sw/gnu/bin/gchmod ) alias chmod '/sw/gnu/bin/gchmod -v'  
   if ( -x /sw/gnu/bin/gchown ) alias chown '/sw/gnu/bin/gchown -v'
