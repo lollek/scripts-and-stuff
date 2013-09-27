@@ -25,6 +25,7 @@ if ( `uname` == "SunOS") then
   # Same with svn:
   if (! `which svn 2> /dev/null` ) then
     if ( -x /sw/subversion-1.6.17/bin/svn ) alias svn '/sw/subversion-1.6.17/bin/svn'
+    if ( -x /sw/subversion-1.6.17/bin/svnadmin ) alias svnadmin '/sw/subversion-1.6.17/bin/svnadmin'
   endif
 
   # GNU is good:
@@ -49,4 +50,3 @@ alias .. 'cd ..'
 alias l 'ls -lh'
 alias la 'ls -A'
 alias ll 'ls -alh'
-
