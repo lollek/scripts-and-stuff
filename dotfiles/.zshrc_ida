@@ -43,7 +43,7 @@ if [[ `uname` == "SunOS" ]]; then
   if [[ -x /sw/gnu/bin/grm ]] alias rm='/sw/gnu/bin/grm -v'
   if [[ -x /sw/gnu/bin/gls ]] alias ls='/sw/gnu/bin/gls --color=auto'
 # Linux needs some verbosity:
-elif [ `uname` == "Linux" ]]; then
+elif [[ `uname` == "Linux" ]]; then
   alias chmod='chmod -v'
   alias chown='chown -v'
   alias chgrp='chgrp -v'
