@@ -16,10 +16,6 @@ syntax on
 set t_Co=256
 colorscheme delek
 
-" Colorschemes :
-" delek
-" pablo
-
 "" Searching:
 " Incremental, case insensitive, highlighted search:
 set incsearch ignorecase hlsearch  
@@ -31,14 +27,14 @@ nnoremap <silent> <Space> :silent noh<Bar>echo<CR>
 set showcmd		       " Show (partial) command in status line.
 set showmatch		       " Show matching brackets.
 set smartcase		       " Do smart case matching
-set autowrite		       " Automatically save before commands like :next and :make
+set autowrite		       " Autosave before commands like :next and :make
 set hidden		       " Hide buffers when they are abandoned
 set backspace=indent,eol,start " Decides which chars backspace can delete
 set ruler                      " Shows cursor position in lowerright corner
 set number
 set backupdir=~/.vim/backup    " Move backups here
 set dir=~/.vim/backup
-"set scrolloff=999              " Tries to keep cursor to the middle of screen
+set scrolloff=4                " Tries to keep cursor a bit centered
 
 "" Indenting and Filetypes:
 filetype plugin indent on
@@ -53,10 +49,14 @@ autocmd FileType python setlocal expandtab shiftwidth=4 softtabstop=4
 " Quick switching between buffers:
 nnoremap <C-n> :bnext<CR>
 nnoremap <C-p> :bprevious<CR>
+nnoremap <C-k> :bdelete<CR>
 
 " To keep me out of INSERT-mode
-inoremap <Left>  <NOP>
-inoremap <Right> <NOP>
-inoremap <Up>    <NOP>
-inoremap <Down>  <NOP>
-
+map <Left>  <NOP>
+map <Right> <NOP>
+map <Up>    <NOP>
+map <Down>  <NOP>
+imap <Left>  <NOP>
+imap <Right> <NOP>
+imap <Up>    <NOP>
+imap <Down>  <NOP>
