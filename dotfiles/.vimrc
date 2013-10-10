@@ -14,6 +14,7 @@ set nocompatible
 set background=dark
 syntax on
 set t_Co=256
+set enc=utf-8
 colorscheme delek
 
 "" Searching:

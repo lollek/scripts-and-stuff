@@ -40,11 +40,22 @@ HISTSIZE=10000
 SAVEHIST=10000
 
 # Baam-specific:
-if [[ `uname -n` == "localhost" ]]; then
-  prompt adam2
-# Non-baam specific: 
-else 
+case `uname -n` in
+  "localhost") # Kilo-specific: 
+    prompt adam2
+    ;;
+  "kilo") # Kilo-specific:
+    prompt clint
+    export LANG=en_US.utf8
+    ;;
+  *) # Others:
   prompt clint
+  ;;
+esac
+
+# Encoding: 
+if [[ $LANG != "en_US.UTF-8" && $LANG != "en_US.utf8" ]]; then
+  echo "Your encoding seems off? check 'locale charmap' and the 'export LANG='"
 fi
 
 # Hacks for Solaris/astmatix needs some GNU:
@@ -60,6 +71,8 @@ if [[ `uname` == "SunOS" ]]; then
     if [[ -x /sw/gnu/bin/gls ]] alias ls='/sw/gnu/bin/gls --color=auto'
   fi
   if [[ -x /sw/vim-7.3/bin/vim_nogtk ]] alias vim='/sw/vim-7.3/bin/vim_nogtk'
+  if [[ -x ~/heroku-client/bin/heroku ]] alias heroku='~/heroku-client/bin/heroku'
+  if [[ -x /sw/git-1.7.6.1/bin/git ]] alias git='/sw/git-1.7.5.1/bin/git'
   if [[ -d /sw/subversion-1.6.17/bin ]]; then
     alias svn='/sw/subversion-1.6.17/bin/svn'
     alias svnadmin='/sw/subversion-1.6.16/bin/svnadmin'
