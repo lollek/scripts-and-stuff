@@ -38,17 +38,20 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:
 HISTFILE=~/.histfile
 HISTSIZE=10000
 SAVEHIST=10000
+VISUAL=vim
+EDITOR=vim
 
 # Baam-specific:
 case `uname -n` in
-  "localhost") # Kilo-specific: 
+  "localhost") 
+    # Baam: 
     prompt adam2
     ;;
-  "kilo") # Kilo-specific:
+  "kilo")
     prompt clint
     export LANG=en_US.utf8
     ;;
-  *) # Others:
+  *)
   prompt clint
   ;;
 esac
