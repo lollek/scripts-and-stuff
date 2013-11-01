@@ -30,4 +30,15 @@ while 1 do
     os.exit()
   end
 end
-  
+
+--[[ TAIL INFO:
+Name: Guess Number
+Language: Python3
+State: Done
+
+Play guess-a-number game
+
+
+
+Example ./guess_number.py
+]]
