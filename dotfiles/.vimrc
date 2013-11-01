@@ -19,17 +19,17 @@ colorscheme delek
 
 "" Searching:
 " Incremental, case insensitive, highlighted search:
-set incsearch ignorecase hlsearch  
+set incsearch ignorecase hlsearch
 " Press space to quit search:
 nnoremap <silent> <Space> :silent noh<Bar>echo<CR>
 
 " The following are commented out as they cause vim to behave a lot
 " differently from regular Vi. They are highly recommended though.
-set showcmd		       " Show (partial) command in status line.
-set showmatch		       " Show matching brackets.
-set smartcase		       " Do smart case matching
-set autowrite		       " Autosave before commands like :next and :make
-set hidden		       " Hide buffers when they are abandoned
+set showcmd                    " Show (partial) command in status line.
+set showmatch                  " Show matching brackets.
+set smartcase                  " Do smart case matching
+set autowrite                  " Autosave before commands like :next and :make
+set hidden                     " Hide buffers when they are abandoned
 set backspace=indent,eol,start " Decides which chars backspace can delete
 set ruler                      " Shows cursor position in lowerright corner
 set number
