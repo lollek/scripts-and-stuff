@@ -15,6 +15,9 @@ def paste(filename1, filename2, delim):
 
         else: break
 
+    file1.close()
+    file2.close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Combine two files")
