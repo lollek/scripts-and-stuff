@@ -21,3 +21,14 @@ else
     fib $1
 fi
     
+## Tail info:
+# Name: Fibonacci Sequence
+# Language: Python3
+# State: Done
+# 
+# Prints out numbers from the fibonacci sequence
+# 
+# 
+# Example: ./fibonacci.py
+# Example2: ./fibonacci.py 42
+# 
