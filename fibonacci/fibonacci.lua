@@ -3,7 +3,6 @@
 function fib(rotations)
   local old_value = 1
   local new_value = 0
-  local tmp
 
   for i = rotations, 0, -1 do
     new_value, old_value = new_value + old_value, new_value
