@@ -73,7 +73,10 @@ if [[ `uname` == "SunOS" ]]; then
     if [[ -x /sw/gnu/bin/grm ]] alias rm='/sw/gnu/bin/grm -v'
     if [[ -x /sw/gnu/bin/gls ]] alias ls='/sw/gnu/bin/gls --color=auto'
   fi
-  if [[ -x /sw/vim-7.3/bin/vim_nogtk ]] alias vim='/sw/vim-7.3/bin/vim_nogtk'
+  if [[ -x /sw/vim-7.3/bin/vim_nogtk ]]; then
+    alias vim='/sw/vim-7.3/bin/vim_nogtk'
+    VISUAL = EDITOR = '/sw/vim-7.3/bin/vim_nogtk'
+  fi
   if [[ -x ~/heroku-client/bin/heroku ]] alias heroku='~/heroku-client/bin/heroku'
   if [[ -x /sw/git-1.7.6.1/bin/git ]] alias git='/sw/git-1.7.5.1/bin/git'
   if [[ -d /sw/subversion-1.6.17/bin ]]; then
