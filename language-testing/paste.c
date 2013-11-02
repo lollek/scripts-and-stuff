@@ -45,8 +45,10 @@ void paste(const char *filename1, const char *filename2, const char *delim)
 
     if (linestatus1 != -1)
       chomp(line1);
-    printf("%s%s%s", linestatus1 == -1 ? "" : line1,
-              delim, linestatus2 == -1 ? "" : line2);
+    if (linestatus2 != -1)
+      chomp(line2);
+    printf("%s%s%s\n", linestatus1 == -1 ? "" : line1,
+                delim, linestatus2 == -1 ? "" : line2);
   }
 
   /* Close files and clean up */

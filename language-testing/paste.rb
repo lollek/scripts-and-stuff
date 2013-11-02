@@ -13,7 +13,8 @@ def paste(filename1, filename2, delim)
     if line1 or line2 then
       print line1.chomp if line1
       print delim
-      print line2 if line2
+      print line2.chomp if line2
+      puts
 
     else
       file1.close
