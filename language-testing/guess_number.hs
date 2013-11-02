@@ -17,10 +17,11 @@ guessNumber guess solution num
   | guess > solution = do 
     putStrLn "Too high! Try again!"
     takeGuess solution $ succ num
-  | guess < solution = do
+  | otherwise = do
     putStrLn "Too low! Try again!"
     takeGuess solution $ succ num
 
+main :: IO ()
 main = do
   solution <- R.randomRIO(1, 100) :: IO Int
   putStrLn "Guess-a-number game!"

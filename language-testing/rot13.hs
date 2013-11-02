@@ -9,6 +9,7 @@ rot13 c
   | 'n' <= toLower c && toLower c <= 'z' = chr(ord c - 13)
   | otherwise = c
 
+main :: IO ()
 main = do
   arg <- System.Environment.getArgs
   if length arg > 0 then

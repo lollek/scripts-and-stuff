@@ -3,11 +3,13 @@ module Main where
 import System.Environment (getArgs)
 
 fib :: Integer -> String
-fib x = fibAux (0, 1, x)
+fib n = fibAux (0, 1, n)
   where
-    fibAux (x, y, 0) = show x
+    fibAux :: (Integer, Integer, Integer) -> String
+    fibAux (x, _, 0) = show x
     fibAux (x, y, z) = fibAux (y, y + x, z - 1)
 
+main :: IO ()
 main = do
   argv <- getArgs
   if length argv == 1 then
