@@ -77,7 +77,7 @@ if [[ `uname` == "SunOS" ]]; then
     vim='/sw/vim-7.3/bin/vim_nogtk'
     alias vim=$vim
     EDITOR=$vim
-    VISUAL=$vun
+    VISUAL=$vim
   fi
   if [[ -x ~/heroku-client/bin/heroku ]] alias heroku='~/heroku-client/bin/heroku'
   if [[ -x /sw/git-1.7.6.1/bin/git ]] alias git='/sw/git-1.7.5.1/bin/git'
