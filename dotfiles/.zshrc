@@ -79,7 +79,10 @@ if [[ `uname` == "SunOS" ]]; then
     EDITOR=$vim
     VISUAL=$vim
   fi
-  if [[ -x ~/heroku-client/bin/heroku ]] alias heroku='~/heroku-client/bin/heroku'
+  if [[ -d /sw/ghc-6.8.2/bin ]]; then
+    alias ghc='/sw/ghc-6.8.2/bin/ghc'
+    alias ghci='/sw/ghc-6.8.2/bin/ghci'
+  fi
   if [[ -x /sw/git-1.7.6.1/bin/git ]] alias git='/sw/git-1.7.5.1/bin/git'
   if [[ -d /sw/subversion-1.6.17/bin ]]; then
     alias svn='/sw/subversion-1.6.17/bin/svn'
