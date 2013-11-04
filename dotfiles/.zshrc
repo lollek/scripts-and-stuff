@@ -102,3 +102,11 @@ alias la='ls -A'
 alias l='ls -lh'
 alias ll='ls -alh'
 
+# Compiling
+# C
+alias gcc='gcc -Wall -Wextra -Werror -pedantic -Weffc -g'
+# C++
+alias g++='g++ -Wall -Wextra -Werror -pedantic -Weffc++ -g'
+alias g++11='g++ -std=c++11'
+# Haskell
+# alias ghc_='ghc --make -Wall $1.hs && rm $1.{.p,.hi}'
