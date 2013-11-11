@@ -107,7 +107,7 @@ alias ll='ls -alh'
 
 # Compiling
 # C
-alias gcc='gcc -Wall -Wextra -Werror -pedantic -Weffc -g'
+alias gcc='gcc -Wall -Wextra -Werror -pedantic -g'
 # C++
 alias g++='g++ -Wall -Wextra -Werror -pedantic -Weffc++ -g'
 alias g++11='g++ -std=c++11'
