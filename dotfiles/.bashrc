@@ -1,5 +1,10 @@
 #PS1='[\u@\h:\w]\$ '
 
+if [[ $- != *i* ]] ; then 
+  # Shell is non-interactive.
+  return 
+fi
+
 # If ROOT; use red text
 if [ $UID -ne 0 ]; then 
     PS1='\[\e[1;32m\][\u\[\e[m\]@\[\e[1;30m\]\h:\[\e[1;34m\]\w\[\e[1;32m\]]\$\[\e[0m\] '
