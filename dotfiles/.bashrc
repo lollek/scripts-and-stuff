@@ -1,49 +1,61 @@
-#PS1='[\u@\h:\w]\$ '
+# Olle K bashrc
 
-if [[ $- != *i* ]] ; then 
-  # Shell is non-interactive.
+# Drop non-interactive shells
+if [[ $- != *i* ]]; then 
   return 
 fi
 
-# If ROOT; use red text
-if [ $UID -ne 0 ]; then 
-    PS1='\[\e[1;32m\][\u\[\e[m\]@\[\e[1;30m\]\h:\[\e[1;34m\]\w\[\e[1;32m\]]\$\[\e[0m\] '
-else 
-    PS1='\[\e[1;31m\][\u\[\e[m\]@\[\e[1;30m\]\h:\[\e[1;34m\]\w\[\e[1;31m\]]\$\[\e[0m\] '
-fi     
+# If encoding is not en_US.UTF-8, try to set it
+utf8_regex="^en_US\.[Uu][Tt][Ff][-]?8$"
+if [[ ! $LANG =~ $utf8_regex ]]; then
+  test_lang=`locale -a | egrep $utf8_regex`
+  if [[ $test_lang != "" ]]; then
+    export LANG=$test_lang
+  else
+    echo -e "\033[1;33mEncoding Warning\033[0m\
+      Failed to change from $LANG to UTF-8"
+  fi
+fi
 
-# My stupid spotify username:
-alias spotnick='echo "カッコいい人"'
+# Check if charmap is UTF-8
+if [[ ! `locale charmap` =~ [Uu][Tt][Ff][-]?8 ]]; then
+  echo -e "\033[1;33mEncoding Warning\033[0m\
+    LANG is UTF-8, but charmap is `locale charmap`"
+fi
 
-# cd .. is annoying to type
+### VARIABLES
+HISTFILE=~/.histfile
+HOSTSIZE=10000
+VISUAL=vim
+EDITOR=vim
+PS1='\033[0;31m\h \033[0;34m[\d \t] [\j jobs] [status $?]
+\033[0;33m\u@\s(\v) \w \$ \033[0m'
+
+### ALIAS
+if [[ -d ~/bin ]]; then
+  export PATH=~/bin:$PATH
+fi
+
 alias ..='cd ..'
-
-## ls
-alias ls='/bin/ls --color=auto'
-alias la='ls -A'
-alias l='ls -lh --group-directories-first'
-alias ll='ls -alh --group-directories-first'
-
-## Verbosity is nice
-alias ln='ln -v'
 alias chmod='chmod -v'
 alias chown='chown -v'
 alias chgrp='chgrp -v'
-alias mv='mv -v'
 alias cp='cp -v'
+alias ln='ln -v'
+alias mv='mv -v'
 alias rm='rm -v'
+alias ls='ls --color=auto --group-directories-first'
+alias la='ls -A'
+alias l='ls -lh'
+alias ll='ls -alh'
 
-# screen
-alias s-rd='screen -rd'
-alias s-ls='screen -ls'
+if [[ `uname` == SunOS ]]; then
+  alias ls='ls --color=auto'
+  alias emacs='emacs --color=always'
+fi
 
-# other
-alias mc='. /usr/share/mc/bin/mc-wrapper.sh'
-alias j='jobs -l'
-alias re-source-bash='source ~/.bashrc'
-alias sshkey='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub'
-alias se='setxkbmap -layout se'
-alias us='setxkbmap -layout us'
-
-# Speak is kinda funny
-alias speak='spd-say -e -t male3 -r -30 -p -100'
+# Compiling
+alias gcc='gcc -Wall -Wextra -Werror -pedantic -g'
+alias g++='g++ -Wall -Wextra -Werror -pedantic -Weffc++ -g'
+alias g++11='g++ -std=c++11'
+alias clang++11='clang++ -std=c++11'
