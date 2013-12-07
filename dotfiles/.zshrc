@@ -2,6 +2,10 @@
 ## Updated 2013-10-06
 ## Olle K zshrc
 
+if [[ $- != *i* ]]; then
+  return
+fi
+
 zstyle :compinstall filename '~/.zshrc'
 
 autoload -Uz compinit && compinit
@@ -41,10 +45,9 @@ SAVEHIST=10000
 VISUAL=vim
 EDITOR=vim
 
-# Baam-specific:
+# PS1
 case `uname -n` in
   "localhost") 
-    # Baam: 
     prompt adam2
     ;;
   "kilo")
@@ -56,61 +59,36 @@ case `uname -n` in
   ;;
 esac
 
-# Encoding: 
+# Encoding
 if [[ $LANG != "en_US.UTF-8" && $LANG != "en_US.utf8" ]]; then
   echo "Your encoding seems off? check 'locale charmap' and the 'export LANG='"
 fi
 
-# Hacks for Solaris/astmatix needs some GNU:
-if [[ `uname` == "SunOS" ]]; then
-  if [[ -d /sw/gnu/bin ]]; then
-    if [[ -x /sw/gnu/bin/gchmod ]] alias chmod='/sw/gnu/bin/gchmod -v'  
-    if [[ -x /sw/gnu/bin/gchown ]] alias chown='/sw/gnu/bin/gchown -v'
-    if [[ -x /sw/gnu/bin/gchgrp ]] alias chgrp='/sw/gnu/bin/gchgrp -v'
-    if [[ -x /sw/gnu/bin/gcp ]] alias cp='/sw/gnu/bin/gcp -v'
-    if [[ -x /sw/gnu/bin/gln ]] alias ln='/sw/gnu/bin/gln -v'
-    if [[ -x /sw/gnu/bin/gmv ]] alias mv='/sw/gnu/bin/gmv -v'
-    if [[ -x /sw/gnu/bin/grm ]] alias rm='/sw/gnu/bin/grm -v'
-    if [[ -x /sw/gnu/bin/gls ]] alias ls='/sw/gnu/bin/gls --color=auto'
-  fi
-  if [[ -x /sw/vim-7.3/bin/vim_nogtk ]]; then
-    vim='/sw/vim-7.3/bin/vim_nogtk'
-    alias vim=$vim
-    EDITOR=$vim
-    VISUAL=$vim
-  fi
-  if [[ -d /sw/ghc-6.8.2/bin ]]; then
-    alias ghc='/sw/ghc-6.8.2/bin/ghc'
-    alias ghci='/sw/ghc-6.8.2/bin/ghci'
-  fi
-  if [[ -x /sw/git-1.7.6.1/bin/git ]] alias git='/sw/git-1.7.5.1/bin/git'
-  if [[ -d /sw/subversion-1.6.17/bin ]]; then
-    alias svn='/sw/subversion-1.6.17/bin/svn'
-    alias svnadmin='/sw/subversion-1.6.16/bin/svnadmin'
-  fi
-# Linux needs some verbosity:
-elif [[ `uname` = "Linux" ]]; then
-  alias chmod='chmod -v'
-  alias chown='chown -v'
-  alias chgrp='chgrp -v'
-  alias cp='cp -v'
-  alias ln='ln -v'
-  alias mv='mv -v'
-  alias rm='rm -v'
-  alias ls='ls --color=auto --group-directories-first'
+# Own Commands
+if [[ -d ~/bin ]]; then
+  export PATH=~/bin:$PATH
 fi
 
 alias ..='cd ..'
+alias chmod='chmod -v'
+alias chown='chown -v'
+alias chgrp='chgrp -v'
+alias cp='cp -v'
+alias ln='ln -v'
+alias mv='mv -v'
+alias rm='rm -v'
+alias ls='ls --color=auto --group-directories-first'
 alias la='ls -A'
 alias l='ls -lh'
 alias ll='ls -alh'
 
+if [[ `uname` == SunOS ]]; then
+  alias ls='ls --color=auto'
+  alias emacs='emacs --color=always'
+fi
+
 # Compiling
-# C
 alias gcc='gcc -Wall -Wextra -Werror -pedantic -g'
-# C++
 alias g++='g++ -Wall -Wextra -Werror -pedantic -Weffc++ -g'
 alias g++11='g++ -std=c++11'
 alias clang++11='clang++ -std=c++11'
-# Haskell
-# alias ghc_='ghc --make -Wall $1.hs && rm $1.{.p,.hi}'
