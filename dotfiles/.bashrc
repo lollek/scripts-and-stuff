@@ -9,7 +9,7 @@ fi
 utf8_regex="^en_US\.[Uu][Tt][Ff][-]?8$"
 if [[ ! $LANG =~ $utf8_regex ]]; then
   test_lang=`locale -a | egrep $utf8_regex`
-  if [[ $test_lang != "" ]]; then
+  if [[ ! -z $test_lang ]]; then
     export LANG=$test_lang
   else
     echo -e "\033[1;33mEncoding Warning\033[0m\
