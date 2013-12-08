@@ -1,12 +1,9 @@
-# Olle K's TCSHRC for use on solaris 10 (But needs to work on Debian as well)
+# Olle K's TCSHRC for use on solaris 10 
 # Created 26 August 2013
-# Last updated 19 September 2013
+# Last updated 8 Dec 2013
 
 # Set PS1
 set prompt = "%{\e[37;42;1m%}%n@%m%{\e[0m%} %{\e[34;1m%}%~%{\e[0m%} %# "
-
-# Make sure screen does not mess up my term
-setenv TERM xterm
 
 # Reverse history searching is GOLD
 bindkey "^R" i-search-back
@@ -14,39 +11,20 @@ bindkey "^R" i-search-back
 # Autocomplete with tab:
 set autolist
 
-# Solaris is a bit quirky:
-if ( `uname` == "SunOS") then
-
-  # Alias vim if it doesn't exist:
-  if (! `which vim 2> /dev/null` ) then
-    if ( -x /sw/vim-7.3/bin/vim_nogtk ) alias vim '/sw/vim-7.3/bin/vim_nogtk'
-  endif
-  
-  # Same with svn:
-  if (! `which svn 2> /dev/null` ) then
-    if ( -x /sw/subversion-1.6.17/bin/svn ) alias svn '/sw/subversion-1.6.17/bin/svn'
-    if ( -x /sw/subversion-1.6.17/bin/svnadmin ) alias svnadmin '/sw/subversion-1.6.17/bin/svnadmin'
-  endif
-
-  # GNU is good:
-  if ( -x /sw/gnu/bin/gchmod ) alias chmod '/sw/gnu/bin/gchmod -v'  
-  if ( -x /sw/gnu/bin/gchown ) alias chown '/sw/gnu/bin/gchown -v'
-  if ( -x /sw/gnu/bin/gchgrp ) alias chgrp '/sw/gnu/bin/gchgrp -v'
-  if ( -x /sw/gnu/bin/gcp ) alias cp '/sw/gnu/bin/gcp -v'
-  if ( -x /sw/gnu/bin/gls ) alias ls '/sw/gnu/bin/gls --color=auto'
-  if ( -x /sw/gnu/bin/gln ) alias ln '/sw/gnu/bin/gln -v'
-  if ( -x /sw/gnu/bin/gmv ) alias mv '/sw/gnu/bin/gmv -v'
-  if ( -x /sw/gnu/bin/grm ) alias rm '/sw/gnu/bin/grm -v'
-
-# Some things needs to be Linux-specific.
-else if ( `uname` == "Linux" ) then
-  alias ls 'ls --color=always'
-endif
-
-# Emacs without colors make me sad:
-alias emacs 'emacs --color=always'
-# Helpful commands:
 alias .. 'cd ..'
-alias l 'ls -lh'
+alias chmod 'chmod -v'
+alias chown 'chown -v'
+alias chgrp 'chgrp -v'
+alias cp 'cp -v'
+alias ln 'ln -v'
+alias mv 'mv -v'
+alias rm 'rm -v'
+alias ls 'ls --color=auto --group-directories-first'
 alias la 'ls -A'
+alias l 'ls -lh'
 alias ll 'ls -alh'
+
+if ( `uname` == SunOS ) then
+  alias ls 'ls --color=auto'
+  alias emacs 'emacs --color=always'
+endif
