@@ -8,7 +8,7 @@ fi
 # If encoding is not en_US.UTF-8, try to set it
 utf8_regex="^en_US\.[Uu][Tt][Ff][-]?8$"
 if [[ ! $LANG =~ $utf8_regex ]]; then
-  test_lang=`locale -a | egrep $utf8_regex`
+  local test_lang=`locale -a | egrep $utf8_regex`
   if [[ ! -z $test_lang ]]; then
     export LANG=$test_lang
   else
@@ -16,6 +16,7 @@ if [[ ! $LANG =~ $utf8_regex ]]; then
       Failed to change from $LANG to UTF-8"
   fi
 fi
+unset utf8_regex
 
 # Check if charmap is UTF-8
 if [[ ! `locale charmap` =~ [Uu][Tt][Ff][-]?8 ]]; then
