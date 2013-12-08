@@ -16,7 +16,6 @@ if [[ ! $LANG =~ $utf8_regex ]]; then
       Failed to change from $LANG to UTF-8"
   fi
 fi
-unset utf8_regex
 
 # Check if charmap is UTF-8
 if [[ ! `locale charmap` =~ [Uu][Tt][Ff][-]?8 ]]; then
@@ -29,8 +28,8 @@ HISTFILE=~/.histfile
 HOSTSIZE=10000
 VISUAL=vim
 EDITOR=vim
-PS1='\033[0;31m\h \033[0;34m[\d \t] [\j jobs] [status $?]
-\033[0;33m\u@\s(\v) \w \$ \033[0m'
+PS1='\[\033[0;31m\]\h \[\033[0;34m\][\d \t] [\j jobs] [status $?]
+\[\033[0;33m\]\u@\s(\v) \w \$ \[\033[0m\]'
 
 ### ALIAS
 if [[ -d ~/bin ]]; then
