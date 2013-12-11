@@ -25,16 +25,13 @@ fi
 
 ### VARIABLES
 HISTFILE=~/.histfile
-HOSTSIZE=10000
+HISTSIZE=10000
 VISUAL=vim
 EDITOR=vim
 PS1='\[\033[0;31m\]\h \[\033[0;34m\][\d \t] [\j jobs] [status $?]
 \[\033[0;33m\]\u@\s(\v) \w \$ \[\033[0m\]'
 
 ### ALIAS
-if [[ -d ~/bin ]]; then
-  export PATH=~/bin:$PATH
-fi
 
 alias ..='cd ..'
 alias chmod='chmod -v'
