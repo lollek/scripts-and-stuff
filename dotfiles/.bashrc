@@ -8,7 +8,7 @@ fi
 # If encoding is not en_US.UTF-8, try to set it
 utf8_regex="^en_US\.[Uu][Tt][Ff][-]?8$"
 if [[ ! $LANG =~ $utf8_regex ]]; then
-  local test_lang=`locale -a | egrep $utf8_regex`
+  test_lang=`locale -a | egrep $utf8_regex`
   if [[ ! -z $test_lang ]]; then
     export LANG=$test_lang
   else
@@ -41,15 +41,22 @@ alias cp='cp -v'
 alias ln='ln -v'
 alias mv='mv -v'
 alias rm='rm -v'
-alias ls='ls --color=auto --group-directories-first'
 alias la='ls -A'
 alias l='ls -lh'
 alias ll='ls -alh'
 
-if [[ `uname` == SunOS ]]; then
-  alias ls='ls --color=auto'
-  alias emacs='emacs --color=always'
-fi
+case `uname` in
+  Linux)
+    alias ls='ls --color=auto --group-directories-first'
+    ;;
+  SunOS)
+    alias ls='ls --color=auto'
+    alias emacs='emacs --color=always'
+    ;;
+  *BSD)
+    alias ls='ls -G'
+    ;;
+esac
 
 # Compiling
 alias gcc='gcc -Wall -Wextra -Werror -pedantic -g'
