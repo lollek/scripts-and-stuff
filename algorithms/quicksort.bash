@@ -12,7 +12,7 @@ quicksort()
   local higher=()
   
   shift
-  for arg in $@; do
+  for arg in "$@"; do
     if [[ $arg < $pivot ]]; then
       lower[${#lower[@]}]=$arg
     elif [[ $arg > $pivot ]]; then
@@ -22,10 +22,10 @@ quicksort()
     fi
   done
 
-  quicksort ${lower[@]}
+  quicksort "${lower[@]}"
   echo -n "${mid[@]} "
-  quicksort ${higher[@]}
+  quicksort "${higher[@]}"
 }
 
-quicksort $@
+quicksort "$@"
 echo
