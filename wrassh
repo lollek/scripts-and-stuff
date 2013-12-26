@@ -1,0 +1,43 @@
+#! /bin/bash
+# A very basic wrapper for running a script before a ssh
+
+# Usage:
+# If you want to run "echo hello world" before you ssh to Host google,
+# and google looks like this in .ssh/config:
+#
+# Host google
+#   Hostname ssh.google.com
+#   User sshuser
+#
+# you should change it to this
+#
+# Host google
+#   Hostname ssh.google.com
+#   User sshuser
+#   #!Script echo hello world
+#
+# Then run it with wrassh google <optional options>
+
+
+wrassh()
+{
+  local handle_this=0
+
+  while IFS= read -r line; do
+    if [[ $line =~ ^Host[[:space:]]+$1[[:space:]]*$ ]]; then
+      handle_this=1
+    elif [[ $handle_this == 1 && $line =~ ^[[:space:]] ]]; then
+      local command=${line##*\#\!Script }
+      if [[ ! $command =~ ^[[:space:]]+ ]]; then
+        echo "Executing $command"
+        $command
+      fi
+    else
+      handle_this=0
+    fi
+  done < ~/.ssh/config
+
+  exec ssh "$@"
+}
+
+wrassh "$@"
