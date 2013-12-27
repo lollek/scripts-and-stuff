@@ -30,6 +30,7 @@ wrassh()
       if [[ ! $command =~ ^[[:space:]]+ ]]; then
         echo "Executing $command"
         $command
+        break
       fi
     else
       handle_this=0
