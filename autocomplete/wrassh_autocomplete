@@ -1,7 +1,7 @@
 wrassh_autocomplete()
 {
   local curr="${COMP_WORDS[COMP_CWORD]}"
-  local options=$(grep -E "^Host[[:space:]].*[[:space:]]*$" ~/.ssh/config | cut -d ' ' -f 2 | tr '\n' ' ')
+  local options=$(grep -E "^Host[[:space:]][a-zA-Z\.]*[[:space:]]*$" ~/.ssh/config | cut -d ' ' -f 2 | tr '\n' ' ')
   COMPREPLY=( $(compgen -W "$options" -- $curr) )
 }
 
