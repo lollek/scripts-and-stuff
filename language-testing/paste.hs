@@ -31,20 +31,22 @@ main = do
 
 -- Part 2: Paste files
 
-myGetLine :: Handle -> IO (Bool, String)
-myGetLine handle = do
-  input <- tryIOError $ hGetLine handle
-  case input of
-    Left _ -> return (False, "")
-    Right s -> return (True, s)
+myGetLine :: (Bool, Handle) -> IO (Bool, String)
+myGetLine (bool, handle)
+  | bool = do
+    input <- tryIOError $ hGetLine handle
+    case input of
+      Left _ -> return (False, "")
+      Right s -> return (True, s)
+  | otherwise = return (False, "")
 
 printOutput :: (Bool, Handle) -> (Bool, Handle) -> String -> IO ()
 printOutput (False, _) (False, _) _ = return ()
-printOutput (_, h1) (_, h2) d = do
-  (b1, line1) <- myGetLine h1
-  (b2, line2) <- myGetLine h2
+printOutput (bFile1, hFile1) (bFile2, hFile2) d = do
+  (b1, line1) <- myGetLine (bFile1, hFile1)
+  (b2, line2) <- myGetLine (bFile2, hFile2)
   putStrLn $ line1 ++ d ++ line2
-  printOutput (b1, h1) (b2, h2) d
+  printOutput (b1, hFile1) (b2, hFile2) d
 
 paste :: String -> String -> [Flag] -> IO ()
 paste file1 file2 [Delim d] =
