@@ -1,7 +1,7 @@
 module Main where
 
-import qualified System.Environment as Env
-import qualified Data.Char as Char
+import System.Environment ( getArgs )
+import Data.Char ( isDigit, isAlpha )
 
 romeFromInt :: Int -> String
 romeFromInt c
@@ -19,46 +19,39 @@ romeFromInt c
   | c >= 4    = 'I':'V': romeFromInt(c - 4)
   | c >= 1    = 'I'    : romeFromInt(c - 1)
   | otherwise = []
-                
+
 intFromRome :: String -> Int
-intFromRome (x:s:xs)
-  | x == 'C' && s == 'M' = 900 + intFromRome xs
-  | x == 'C' && s == 'D' = 400 + intFromRome xs
-  | x == 'X' && s == 'C' = 90 + intFromRome xs
-  | x == 'X' && s == 'L' = 40 + intFromRome xs
-  | x == 'I' && s == 'X' = 9 + intFromRome xs
-  | x == 'I' && s == 'V' = 4 + intFromRome xs
-intFromRome (x:xs)
-  | x == 'M'  = 1000 + intFromRome xs
-  | x == 'D'  = 500 + intFromRome xs
-  | x == 'C'  = 100 + intFromRome xs
-  | x == 'L'  = 50 + intFromRome xs
-  | x == 'X'  = 10 + intFromRome xs
-  | x == 'V'  = 5 + intFromRome xs
-  | x == 'I'  = 1 + intFromRome xs
-  | otherwise = intFromRome xs
-intFromRome "" = 0
+intFromRome ('M':xs)     = 1000 + intFromRome xs
+intFromRome ('D':xs)     = 500 + intFromRome xs
+intFromRome ('C':'M':xs) = 900 + intFromRome xs
+intFromRome ('C':'D':xs) = 400 + intFromRome xs
+intFromRome ('C':xs)     = 100 + intFromRome xs
+intFromRome ('L':xs)     = 50 + intFromRome xs
+intFromRome ('X':'C':xs) = 90 + intFromRome xs
+intFromRome ('X':'L':xs) = 40 + intFromRome xs
+intFromRome ('X':xs)     = 10 + intFromRome xs
+intFromRome ('V':xs)     = 5 + intFromRome xs
+intFromRome ('I':'X':xs) = 9 + intFromRome xs
+intFromRome ('I':'V':xs) = 4 + intFromRome xs
+intFromRome ('I':xs)     = 1 + intFromRome xs
+-- Normally, silent failure would be bad, but in this case it's OK:
+intFromRome (_:xs)       = intFromRome xs
+intFromRome []           = 0
 
-convert :: String -> IO ()
-convert num = do
-  if all Char.isDigit num 
-    then putStrLn $ romeFromInt (read num :: Int)
-    else if all Char.isAlpha num 
-         then print $ intFromRome num
-         else putStrLn "Unknown"
+convert :: [String] -> IO ()
+convert [] = 
+  putStrLn $ unlines
+    ["Example usages:"
+    ,"\t./roman_math XVI"
+    ,"\t./roman_math 15"
+    ]
+convert (num:_)
+  | all isDigit num = putStrLn $ romeFromInt (read num :: Int)
+  | all isAlpha num = print $ intFromRome num
+  | otherwise = putStrLn "Received data was neither roman nor decimal"
 
-main = do 
-  argv <- Env.getArgs
-  if (length argv > 0) 
-    then convert (argv !! 0)
-    else putStrLn $ unlines 
-         ["Example usages:"
-         ,"\t./roman_math XVI"
-         ,"\t./roman_math 15"
-         ]
-
-
-
+main :: IO ()
+main = getArgs >>= convert
 
 -- TAIL INFO:
 -- Name: Roman Math
