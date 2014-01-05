@@ -10,3 +10,6 @@
 *.ali
 .#*
 *.pyc
+hex
+dec
+oct
