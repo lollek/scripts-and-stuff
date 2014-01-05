@@ -1,3 +1,4 @@
+# vim:set ft=sh:
 _wrassh_autocomplete()
 {
   local curr="${COMP_WORDS[COMP_CWORD]}"
