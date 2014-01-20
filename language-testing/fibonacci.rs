@@ -14,7 +14,7 @@ fn fib(rot: int) -> int {
 
 fn main() {
   let arg: ~[~str] = std::os::args();
-  if (arg.len() > 1) {
+  if arg.len() > 1 {
     match from_str::<int>(arg[1]) {
       Some(x) => println!("{}", fib(x)),
       None    => println("Bad argument!")
