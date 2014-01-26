@@ -8,8 +8,6 @@
 *.o
 *.hi
 *.ali
-.#*
 *.pyc
-hex
-dec
-oct
+*~
+.#*
