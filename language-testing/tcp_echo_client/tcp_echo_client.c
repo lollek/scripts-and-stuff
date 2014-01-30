@@ -25,12 +25,12 @@ int send_receive_data(const char *hostname, const char *port, const char *data)
   for (p = result; p != NULL; p = p->ai_next)
   {
     sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-    if (sock != -1)
-    {
-      if (connect(sock, p->ai_addr, p->ai_addrlen) != -1)
-        break;
+    if (sock == -1)
+      continue;
+    else if (connect(sock, p->ai_addr, p->ai_addrlen) != -1)
+      break;
+    else
       close(sock);
-    }
   }
 
   freeaddrinfo(result);
