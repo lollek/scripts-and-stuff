@@ -3,21 +3,13 @@
 import argparse
 
 def paste(filename1, filename2, delim):
-    file1 = open(filename1)
-    file2 = open(filename2)
-
-    while 1:
-        line1 = file1.readline()
-        line2 = file2.readline()
-
-        if line1 or line2:
-            print(line1.rstrip(), line2.rstrip(), sep=delim)
-
-        else: break
-
-    file1.close()
-    file2.close()
-
+    with open(filename1) as file1, open(filename2) as file2:
+        while 1:
+            line1 = file1.readline()
+            line2 = file2.readline()
+            if line1 or line2:
+                print(line1.rstrip(), line2.rstrip(), sep=delim) 
+            else: break
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Combine two files")
