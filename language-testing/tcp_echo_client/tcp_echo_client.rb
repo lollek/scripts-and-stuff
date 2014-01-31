@@ -9,27 +9,18 @@ def send_receive_data hostname, port, content
   end
 end
 
-def fail msg
+def die msg
   $stderr.puts "Usage: #{$0} hostname port\nError: #{msg}" 
   exit 1
 end
 
 if __FILE__ == $0
-  hostname = nil
-  port = nil
-
-  ARGV.each do |arg|
-    if not hostname
-      hostname = arg
-    elsif not port
-      fail "Port contains non-numbers!" if not /^\d+$/ =~ arg
-      port = arg.to_i
-    else
-      fail "Too many arguments!"
-    end
+  case ARGV.length
+  when 0 then die "No hostname given!"
+  when 1 then die "No port given!"
+  when 2 then
+    die "Port contains non-numbers!" unless /^\d+$/ =~ ARGV[1]
+    send_receive_data ARGV[0], ARGV[1].to_i, $stdin.read
+  else die "Too many arguments given!"
   end
-
-  fail "No hostname given!" if not hostname
-  fail "No port given!" if not port
-  send_receive_data hostname, port, $stdin.read
 end
