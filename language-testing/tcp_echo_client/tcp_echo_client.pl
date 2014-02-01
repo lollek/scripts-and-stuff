@@ -9,13 +9,13 @@ sub send_and_receive_data {
     PeerAddr => $_[0],
     PeerPort => $_[1],
     Proto => "tcp"
-    );
-  die "Failed to connect: $!\n" unless $sock;
+  ) or die "Failed to connect: $!\n";
+
   print $sock $_[2];
   while (<$sock>) {
     print $_;
   }
-  close($sock);
+  close $sock;
 }
 
 my $usage = "Usage: $0 hostname port";
