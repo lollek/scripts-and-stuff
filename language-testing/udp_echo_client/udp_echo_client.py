@@ -8,7 +8,8 @@ def send_receive_data(hostname, port, content):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.sendto(content.encode(), (hostname, port))
         data, client = sock.recvfrom(1024)
-        print(data.decode(), end="\n")
+        data = data.decode()
+        print(data, end='' if data[-1] == '\n' else '\n')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="UDP Echo Client")
