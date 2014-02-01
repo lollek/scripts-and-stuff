@@ -21,8 +21,7 @@ int send_receive_data(const char *hostname, const char *port, const char *data)
   }
 
   int sock;
-  struct addrinfo *p = NULL;
-  for (p = result; p != NULL; p = p->ai_next)
+  for (struct addrinfo *p = result; p != NULL; p = p->ai_next)
   {
     sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
     if (sock == -1)
@@ -30,12 +29,15 @@ int send_receive_data(const char *hostname, const char *port, const char *data)
     else if (connect(sock, p->ai_addr, p->ai_addrlen) != -1)
       break;
     else
+    {
       close(sock);
+      sock = -1;
+    }
   }
 
   freeaddrinfo(result);
 
-  if (p == NULL)
+  if (sock == -1)
   {
     fprintf(stderr, "Error: Failed to connect to host\n");
     return 1;
