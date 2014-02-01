@@ -16,17 +16,13 @@ def start_echo_server port
   end
 end
 
+def die error
+  $stderr.puts "Usage: #{$0} port\n#{error}"
+  exit 1
+end
+
 if __FILE__ == $0
-  if ARGV.length == 1
-    if ARGV[0] =~ /^\d+$/
-      start_echo_server ARGV[0].to_i
-    else
-      $stderr.puts "Usage: #{$0} port"
-      $stderr.puts "Error: Port contains non-digits!"
-      exit 1
-    end
-  else
-    $stderr.puts "Usage: #{$0} port"
-    exit 1
-  end
+  die "No port given!" unless ARGV.length > 0
+  die "Error: Port contains non-digits!" unless ARGV[0] =~ /^\d+$/
+  start_echo_server ARGV[0].to_i
 end
