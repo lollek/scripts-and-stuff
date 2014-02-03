@@ -16,7 +16,8 @@ def send_receive_data(hostname, port, content):
         data += tmp
     s.close()
     data = data.decode()
-    print(data, end="\n" if data[-1] != "\n" else "")
+    if data:
+        print(data, end="\n" if data[-1] != "\n" else "")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Send string to server")
