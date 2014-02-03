@@ -1,0 +1,21 @@
+FIBONACCI
+
+Calculate numbers from the fibonacci sequence
+If the application is called without arguments, it should print them out like
+this (where a TAB separates 0 and 55):
+
+0       55
+1       89
+1       144
+2       233
+3       377
+5       610
+8       987
+13      1597
+21      2584
+34      4181
+
+If the application is called with an argument, it should calculate the nth
+fibonacci, where n is the number in the argument.
+
+If n < 0, the argument is a letter, etc, the result is undefined

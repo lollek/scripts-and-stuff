@@ -1,4 +1,4 @@
-/* Compile with -std=c11 or -std=c99 */
+/* Compile with -std=c99 */
 #include <stdio.h>
 #include <stdlib.h>
 

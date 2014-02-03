@@ -10,27 +10,17 @@ fib() {
     new_val=$(( old_val + new_val ))
     old_val=$tmp
   done
-  echo $new_val
+  echo -n $new_val
 }
 
 if [[ -z $1 ]]; then
-  range="$(seq 1 20)"
+  for ((r=0; r < 10; ++r)); do
+    fib $r
+    echo -en "\t"
+    fib $((r + 10))
+    echo
+  done
 else
-  range="$1"
+  fib $1
+  echo
 fi
-
-for num in $range; do
-  fib "$num"
-done
-    
-## Tail info:
-# Name: Fibonacci Sequence
-# Language: Python3
-# State: Done
-# 
-# Prints out numbers from the fibonacci sequence
-# 
-# 
-# Example: ./fibonacci.py
-# Example2: ./fibonacci.py 42
-# 
