@@ -1,3 +1,4 @@
+/* Compile with std=gnu99 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -6,37 +7,34 @@
 
 #include <netdb.h>
 
-int send_receive_data(const char *hostname, const char *port, const char *data)
-{
+int send_receive_data(const char *hostname, const char *port, 
+                      const char *data) {
   struct addrinfo hints, *results;
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_DGRAM;
 
   int status = getaddrinfo(hostname, port, &hints, &results);
-  if (status != 0)
-  {
+  if (status != 0) {
     fprintf(stderr, "Error: %s\n", gai_strerror(status));
     return 1;
   }
 
   int sock = -1;
   struct addrinfo *p = NULL;
-  for (p = results; p != NULL; p = p->ai_next)
-  {
+  for (p = results; p != NULL; p = p->ai_next) {
     sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-    if (sock != -1)
+    if (sock != -1) {
       break;
+    }
   }
 
-  if (p == NULL)
-  {
+  if (p == NULL) {
     fprintf(stderr, "Error: Could not connect to host\n");
     return 1;
   }
 
-  if (sendto(sock, data, strlen(data), 0, p->ai_addr, p->ai_addrlen) == -1)
-  {
+  if (sendto(sock, data, strlen(data), 0, p->ai_addr, p->ai_addrlen) == -1) {
     fprintf(stderr, "Error: Failed to send data\n");
     return 1;
   }
@@ -44,16 +42,16 @@ int send_receive_data(const char *hostname, const char *port, const char *data)
   char buf[1024];
   int buflen = recvfrom(sock, buf, (sizeof(buf)/sizeof(buf[0]))-1, 0,
                         NULL, NULL);
-  if (buflen == -1)
-  {
+  if (buflen == -1) {
     fprintf(stderr, "Error: Failed to receive data\n");
     return 1;
   }
 
-  if (buf[buflen -1] == '\n')
+  if (buf[buflen -1] == '\n') {
     buf[buflen -1] = '\0';
-  else
+  } else {
     buf[buflen] = '\0';
+  }
 
   puts(buf);
   freeaddrinfo(results);
@@ -70,19 +68,23 @@ int usage(const char *error)
 
 int main(int argc, char *argv[])
 {
-  if (argc == 1)
+  if (argc == 1) {
     return usage("No hostname provided!");
-  else if (argc == 2)
+  } else if (argc == 2) {
     return usage("No port provided!");
-  else if (argc > 3)
+  } else if (argc > 3) {
     return usage("Too many arguments!");
-  for (char *c = argv[2]; *c != '\0'; ++c)
-    if (!isdigit(*c))
+  }
+  for (char *c = argv[2]; *c != '\0'; ++c) {
+    if (!isdigit(*c)) {
       return usage("Port contains non-digits!");
+    }
+  }
 
   char contents[1024];
-  if (fgets(contents, sizeof(contents)/sizeof(contents[0]), stdin) == NULL)
+  if (fgets(contents, sizeof(contents)/sizeof(contents[0]), stdin) == NULL) {
     return usage("No contents provided!");
-  else
+  } else {
     return send_receive_data(argv[1], argv[2], &contents[0]);
+  }
 }
