@@ -143,13 +143,41 @@ Socket *Socket::_accept() {
     sin_addr = &(((struct sockaddr_in6 *)&client_addr)->sin6_addr);
   }
   char client_ip[INET6_ADDRSTRLEN];
-  inet_ntop(client_addr.ss_family, sin_addr, client_ip, sizeof(client_ip));
+  inet_ntop(client_addr.ss_family, sin_addr, client_ip, INET6_ADDRSTRLEN);
 
   return new Socket(client, client_ip, ip_version_, protocol_);
 }
 
+string Socket::_recvfrom(int num) {
+  char *data = new char[num];
+  struct sockaddr_storage client_addr;
+  socklen_t socklen = sizeof(client_addr);
+  char datalen = recvfrom(sock_, data, num -1,
+                          (struct sockaddr *)&client_addr, &socklen);
+  if (datalen == -1) {
+    perror("recvfrom");
+    return "";
+  }
+
+  data[datalen] = '\0';
+
+  void *sin_addr = NULL;
+  if (((struct sockaddr *)&client_addr)->sa_family == AF_INET) {
+    sin_addr = &(((struct sockaddr_in *)&client_addr)->sin_addr);
+  } else {
+    sin_addr = &(((struct sockaddr_in6 *)&client_addr)->sin6_addr);
+  }
+  char client_ip[INET6_ADDRSTRLEN];
+  inet_ntop(client_addr.ss_family, sin_addr, client_ip, INET6_ADDRSTRLEN);
+
+  strncpy(ip_, client_ip, INET6_ADDRSTRLEN);
+  string return_value(client_ip);
+  delete[] data;
+  return return_value;
+}
+
 string Socket::_recv(int num) {
-  char *data = new char[1024];
+  char *data = new char[num];
   int datalen = recv(sock_, data, num -1, 0);
   if (datalen == -1) {
     cerr << "Failed to read from client\n";

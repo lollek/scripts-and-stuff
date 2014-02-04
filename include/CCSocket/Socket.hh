@@ -17,6 +17,7 @@ class Socket {
     int _bind(int port);
     int _listen(int num);
     Socket *_accept();
+    std::string _recvfrom(int num);
     std::string _recv(int num);
     void _send(const std::string &message);
     void _close();
