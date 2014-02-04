@@ -1,17 +1,17 @@
 #include <iostream>
 
-#include "Socket.hh"
+#include "TCPSocket.hh"
 
 using namespace std;
 
 int main() {
-  Socket socket(IPV4, TCP);
+  TCPSocket socket(IPV4);
   socket._reuseAddr(1);
   socket._bind(1337);
   socket._listen(10);
 
   for (;;) {
-    Socket *client = socket._accept();
+    TCPSocket *client = socket._accept();
     if (client == NULL) {
       return 1;
     }

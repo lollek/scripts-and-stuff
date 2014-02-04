@@ -7,13 +7,12 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#include "Socket.hh"
+#include "TCPSocket.hh"
 
 using namespace std;
 
-Socket::Socket(IPV ip_version, PROTO protocol) :
+TCPSocket::TCPSocket(IPV ip_version) :
   ip_version_(ip_version),
-  protocol_(protocol),
   sock_(-1),
   ip_(new char[INET6_ADDRSTRLEN]),
   reuseaddr_(false)
@@ -21,9 +20,8 @@ Socket::Socket(IPV ip_version, PROTO protocol) :
   memset(ip_, 0, INET6_ADDRSTRLEN);
 }
 
-Socket::Socket(const Socket &other) :
+TCPSocket::TCPSocket(const TCPSocket &other) :
   ip_version_(other.ip_version_),
-  protocol_(other.protocol_),
   sock_(other.sock_),
   ip_(new char[INET6_ADDRSTRLEN]),
   reuseaddr_(other.reuseaddr_)
@@ -32,18 +30,17 @@ Socket::Socket(const Socket &other) :
   ip_[INET6_ADDRSTRLEN -1] = '\0';
 }
 
-Socket::~Socket() {
+TCPSocket::~TCPSocket() {
   delete[] ip_;
   ip_ = NULL;
 }
 
-void Socket::_reuseAddr(bool var) {
+void TCPSocket::_reuseAddr(bool var) {
   reuseaddr_ = var;
 }
 
-Socket::Socket(int sock, const char *ip, IPV ip_version, PROTO protocol) :
+TCPSocket::TCPSocket(int sock, const char *ip, IPV ip_version) :
   ip_version_(ip_version),
-  protocol_(protocol),
   sock_(sock),
   ip_(new char[INET6_ADDRSTRLEN]),
   reuseaddr_(false)
@@ -52,11 +49,11 @@ Socket::Socket(int sock, const char *ip, IPV ip_version, PROTO protocol) :
   ip_[INET6_ADDRSTRLEN -1] = '\0';
 }
 
-int Socket::construct(const char *hostname, const char *port) {
+int TCPSocket::construct(const char *hostname, const char *port) {
   struct addrinfo hints;
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = ip_version_ == IPV4 ? AF_INET : AF_INET6;
-  hints.ai_socktype = protocol_ == TCP ? SOCK_STREAM : SOCK_DGRAM;
+  hints.ai_socktype = SOCK_STREAM;
   if (hostname == NULL) {
     hints.ai_flags = AI_PASSIVE;
   }
@@ -111,15 +108,15 @@ int Socket::construct(const char *hostname, const char *port) {
   return 0;
 }
 
-int Socket::_connect(const string &hostname, int port) {
+int TCPSocket::_connect(const string &hostname, int port) {
   return construct(hostname.c_str(), to_string(port).c_str());
 }
 
-int Socket::_bind(int port) {
+int TCPSocket::_bind(int port) {
   return construct(NULL, to_string(port).c_str());
 }
 
-int Socket::_listen(int num) {
+int TCPSocket::_listen(int num) {
   if (listen(sock_, num) == -1) {
     perror("listen");
     return 1;
@@ -127,7 +124,7 @@ int Socket::_listen(int num) {
   return 0;
 }
 
-Socket *Socket::_accept() {
+TCPSocket *TCPSocket::_accept() {
   struct sockaddr_storage client_addr;
   socklen_t socklen = sizeof(client_addr);
   int client = accept(sock_, (struct sockaddr *)&client_addr, &socklen);
@@ -145,38 +142,10 @@ Socket *Socket::_accept() {
   char client_ip[INET6_ADDRSTRLEN];
   inet_ntop(client_addr.ss_family, sin_addr, client_ip, INET6_ADDRSTRLEN);
 
-  return new Socket(client, client_ip, ip_version_, protocol_);
+  return new TCPSocket(client, client_ip, ip_version_);
 }
 
-string Socket::_recvfrom(int num) {
-  char *data = new char[num];
-  struct sockaddr_storage client_addr;
-  socklen_t socklen = sizeof(client_addr);
-  char datalen = recvfrom(sock_, data, num -1,
-                          (struct sockaddr *)&client_addr, &socklen);
-  if (datalen == -1) {
-    perror("recvfrom");
-    return "";
-  }
-
-  data[datalen] = '\0';
-
-  void *sin_addr = NULL;
-  if (((struct sockaddr *)&client_addr)->sa_family == AF_INET) {
-    sin_addr = &(((struct sockaddr_in *)&client_addr)->sin_addr);
-  } else {
-    sin_addr = &(((struct sockaddr_in6 *)&client_addr)->sin6_addr);
-  }
-  char client_ip[INET6_ADDRSTRLEN];
-  inet_ntop(client_addr.ss_family, sin_addr, client_ip, INET6_ADDRSTRLEN);
-
-  strncpy(ip_, client_ip, INET6_ADDRSTRLEN);
-  string return_value(client_ip);
-  delete[] data;
-  return return_value;
-}
-
-string Socket::_recv(int num) {
+string TCPSocket::_recv(int num) {
   char *data = new char[num];
   int datalen = recv(sock_, data, num -1, 0);
   if (datalen == -1) {
@@ -190,7 +159,7 @@ string Socket::_recv(int num) {
   return return_value;
 }
 
-void Socket::_send(const string &message) {
+void TCPSocket::_send(const string &message) {
   const char *data = message.c_str();
   int data_left = strlen(data);
   while (data_left > 0) {
@@ -203,7 +172,7 @@ void Socket::_send(const string &message) {
   }
 }
 
-void Socket::_close() {
+void TCPSocket::_close() {
   close(sock_);
   delete[] ip_;
   ip_ = NULL;

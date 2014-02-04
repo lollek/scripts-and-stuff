@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "Socket.hh"
+#include "TCPSocket.hh"
 
 using namespace std;
 
@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  Socket socket(IPV4, TCP);
+  TCPSocket socket(IPV4);
   socket._connect(argv[1], stoi(argv[2]));
   string data;
   data.resize(1024);
