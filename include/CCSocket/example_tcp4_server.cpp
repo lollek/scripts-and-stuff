@@ -10,7 +10,7 @@ int main() {
   socket._bind(1337);
   socket._listen(10);
 
-  //for (;;) {
+  for (;;) {
     Socket *client = socket._accept();
     if (client == NULL) {
       return 1;
@@ -20,7 +20,7 @@ int main() {
     client->_close();
     delete client;
     cout << data << '\n';
-  //}
+  }
   socket._close();
   return 0;
 }
