@@ -1,0 +1,3 @@
+[submodule "include/TCPSocket"]
+	path = include/TCPSocket
+	url = git@github.com:lollek/TCPSocket.git
