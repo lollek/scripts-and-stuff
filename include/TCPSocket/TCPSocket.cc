@@ -102,13 +102,15 @@ int TCPSocket::construct(const char *hostname, const char *port) {
   freeaddrinfo(results);
 
   if (sock_ == -1) {
-    cerr << "Failed to bind\n";
+    cerr << "Unable to create socket (bind/connect)!\n";
     return 1;
   }
   return 0;
 }
 
 int TCPSocket::_connect(const string &hostname, int port) {
+  strncpy(ip_, hostname.c_str(), INET6_ADDRSTRLEN);
+  ip_[INET6_ADDRSTRLEN -1] = '\0';
   return construct(hostname.c_str(), to_string(port).c_str());
 }
 
@@ -176,4 +178,8 @@ void TCPSocket::_close() {
   close(sock_);
   delete[] ip_;
   ip_ = NULL;
+}
+
+string TCPSocket::_getHostname() {
+  return string(ip_);
 }

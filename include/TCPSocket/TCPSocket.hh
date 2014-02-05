@@ -20,6 +20,8 @@ class TCPSocket {
     void _send(const std::string &message);
     void _close();
 
+    std::string _getHostname();
+
   private:
     TCPSocket(int sock, const char *ip, IPV ip_version);
     int construct(const char *hostname, const char *port);
