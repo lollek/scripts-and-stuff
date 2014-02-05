@@ -1,0 +1,26 @@
+#! /usr/bin/env python3
+
+from sys import stdin
+from argparse import ArgumentParser
+from urllib.request import urlopen
+from urllib.parse import urlencode
+
+def main(args):
+    data = { "code2": stdin.read()
+           , "expiry": args.expiry
+           , "format": args.format
+           , "parent_pid": ""
+           , "paste": "Send"
+           , "poster": "anonymous"
+           }
+    print(urlopen('http://pastebin.mozilla.org/', urlencode(data).encode()).geturl())
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("-l", dest="format", default="text",
+                        help="programming language")
+    parser.add_argument("-e", dest="expiry", default="d",
+                        help="(d)ay, (m)onth or (y)ear")
+    args = parser.parse_args()
+    main(args)
+
