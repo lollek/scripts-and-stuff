@@ -1,0 +1,95 @@
+#! /usr/bin/env ruby
+# encoding: UTF-8
+
+require 'socket'
+
+def die err
+  $stderr.puts err
+  exit 1
+end
+
+class LookupPerson
+  attr_reader :name, :addr, :age
+
+  def initialize redata
+    @name_raw = redata[0]
+    @addr_raw, @age_raw = redata[1].split("På samma adress</a>")
+
+    def prettify string
+      string.gsub /<.*?>/, ''
+    end
+
+    @name = prettify @name_raw
+    @addr = prettify @addr_raw
+    @age  = prettify @age_raw
+  end
+
+  def abstract
+    "#{name} (#{age.match(/\d+ år/)}) @#{addr.match(/[[:alpha:]]+$/)}"
+  end
+
+  def info
+    "Namn:   #{name}\nAdress: #{addr}\nÅlder:  #{age}"
+  end
+end
+
+def get_data name, surname
+  # Encode UTF-8 to ISO-8859-1 and then HTML-escape it
+  def black_encoding string
+    string.encode("ISO-8859-1").gsub(/([^ a-zA-Z0-9_.-]+)/) do |char|
+      '%' + char.unpack('H2' * char.bytesize).join('%')
+    end.tr(' ', '+')
+  end
+
+  # Encode unholy HTML-escaped ISO-8859-1-bytestring to UTF-8
+  def purge_black_encoding string
+    string.tr('+', ' ').force_encoding(Encoding::ASCII_8BIT)
+    .gsub(/((?:%[0-9a-fA-F]{2})+)/) do |char|
+      [char.delete('%')].pack('H*')
+    end.force_encoding("ISO-8859-1").encode("UTF-8")
+  end
+
+  # Send request - receive HTML-body
+  data = ""
+  TCPSocket.open "birthday.se", 80 do |sock|
+    sock.print "GET /sok/?f=#{black_encoding(name)}" +
+                        "&l=#{black_encoding(surname)} HTTP/1.1\r\n" +
+                        "Host: www.birthday.se\r\nConnection: close\r\n\r\n"
+    data = sock.read
+  end
+
+  # Convert HTML-body to a list of LookupPersons
+  (purge_black_encoding(data)
+   .scan /(<a href="\/person\/[a-z0-9-]+">.*?<\/a>).*?(<span>.*?<\/p>)/)
+   .map {|person| LookupPerson.new person}
+end
+
+def main name, surname
+  print "Söker..."
+  $stdout.flush
+  list = get_data name, surname
+
+  case list.length
+  when 0 then 
+    die "0 träffar"
+  when 1 then
+    puts "1 träff\n#{list[0].info}"
+    exit 0
+  when 2..9 then
+    puts "#{list.length} träffar:\n"
+  else
+    puts "10+ träffar:\n"
+  end
+
+  puts list.map.with_index {|person, i| "#{i +1}: #{person.abstract}"}
+  print "Vem? "
+  $stdout.flush
+  sel = $stdin.gets.to_i
+  puts "\n#{list[sel -1].info}" if sel > 0 and list[sel -1]
+end
+
+
+if __FILE__ == $0
+  die "Usage #{$0} name surname" unless ARGV.length == 2
+  main ARGV[0], ARGV[1]
+end
