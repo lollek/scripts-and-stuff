@@ -3,11 +3,6 @@
 
 require 'socket'
 
-def die err
-  $stderr.puts err
-  exit 1
-end
-
 class LookupPerson
   attr_reader :name, :addr, :age
 
@@ -33,29 +28,33 @@ class LookupPerson
   end
 end
 
+def die err
+  $stderr.puts err
+  exit 1
+end
+
 def get_data name, surname
-  # Encode UTF-8 to ISO-8859-1 and then HTML-escape it
-  def black_encoding string
-    string.encode("ISO-8859-1").gsub(/([^ a-zA-Z0-9_.-]+)/) do |char|
+  # Encode name and surname to ISO-8859-1 and then HTML-escape it
+  [name, surname].each do |string|
+    string = string.encode("ISO-8859-1").gsub(/([^ a-zA-Z0-9_.-]+)/) do |char|
       '%' + char.unpack('H2' * char.bytesize).join('%')
     end.tr(' ', '+')
-  end
-
-  # Encode unholy HTML-escaped ISO-8859-1-bytestring to UTF-8
-  def purge_black_encoding string
-    string.tr('+', ' ').force_encoding(Encoding::ASCII_8BIT)
-    .gsub(/((?:%[0-9a-fA-F]{2})+)/) do |char|
-      [char.delete('%')].pack('H*')
-    end.force_encoding("ISO-8859-1").encode("UTF-8")
   end
 
   # Send request - receive HTML-body
   data = ""
   TCPSocket.open "birthday.se", 80 do |sock|
-    sock.print "GET /sok/?f=#{black_encoding(name)}" +
-                        "&l=#{black_encoding(surname)} HTTP/1.1\r\n" +
-                        "Host: www.birthday.se\r\nConnection: close\r\n\r\n"
+    sock.print "GET /sok/?f=#{name}&l=#{surname} HTTP/1.1\r\n" +
+               "Host: www.birthday.se\r\nConnection: close\r\n\r\n"
     data = sock.read
+  end
+
+  # Encode HTML-escaped ISO-8859-1-bytestring to UTF-8
+  def purge_black_encoding string
+    string.tr('+', ' ').force_encoding(Encoding::ASCII_8BIT)
+    .gsub(/((?:%[0-9a-fA-F]{2})+)/) do |char|
+      [char.delete('%')].pack('H*')
+    end.force_encoding("ISO-8859-1").encode("UTF-8")
   end
 
   # Convert HTML-body to a list of LookupPersons
