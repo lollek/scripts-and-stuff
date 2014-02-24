@@ -30,5 +30,6 @@ wrascp()
 if [[ ! -z $1 ]]; then
   wrascp "$@"
 else
-  scp 2>&1 | sed 's/scp/wrascp/g'
+  (scp 2>&1 | sed 's/scp/wrascp/g' >&2)
+  exit 1
 fi
