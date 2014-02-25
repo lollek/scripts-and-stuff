@@ -8,8 +8,7 @@ def hodor(str)
 end
 
 if ARGV.length > 0
-  puts hodor(ARGV.join(" "))
+  puts hodor(ARGV.join(' '))
 else
-  $stdin.each do |line| puts hodor(line) end
+  $stdin.each { |line| puts hodor(line) }
 end
-

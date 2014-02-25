@@ -1,101 +1,68 @@
 #! /usr/bin/env ruby
 
-def rome_from_int(int)
+def rome_from_int(dec)
+  rome = ''
 
-  rome = ""
+  while dec >= 1000 do rome << 'M'  && dec -= 1000 end
+  while dec >= 900  do rome << 'CM' && dec -= 900 end
+  while dec >= 500  do rome << 'D'  && dec -= 500 end
+  while dec >= 400  do rome << 'CD' && dec -= 400 end
+  while dec >= 100  do rome << 'C'  && dec -= 100 end
+  while dec >= 90   do rome << 'XC' && dec -= 90 end
+  while dec >= 50   do rome << 'L'  && dec -= 50 end
+  while dec >= 40   do rome << 'XL' && dec -= 40 end
+  while dec >= 10   do rome << 'X'  && dec -= 10 end
+  while dec >= 9    do rome << 'IX' && dec -= 9 end
+  while dec >= 5    do rome << 'V'  && dec -= 5 end
+  while dec >= 4    do rome << 'IV' && dec -= 4 end
+  while dec >= 1    do rome << 'I'  && dec -= 1 end
 
-  while int >= 1000 do rome += "M"; int -= 1000 end
-  while int >= 900 do rome += "CM"; int -= 900 end
-  while int >= 500 do rome += "D"; int -= 500 end
-  while int >= 400 do rome += "CD"; int -= 400 end
-  while int >= 100 do rome += "C"; int -= 100 end
-  while int >= 90 do rome += "XC"; int -= 90 end
-  while int >= 50 do rome += "L"; int -= 50 end
-  while int >= 40 do rome += "XL"; int -= 40 end
-  while int >= 10 do rome += "X"; int -= 10 end
-  while int >= 9 do rome += "IX"; int -= 9 end
-  while int >= 5 do rome += "V"; int -= 5 end
-  while int >= 4 do rome += "IV"; int -= 4 end
-  while int >= 1 do rome += "I"; int -= 1 end
-
-  return rome
+  rome
 end
 
 def int_from_rome(rome)
+  results = 0
 
-  int = 0
-  tmp = 0
-  
-  rome.each_char.each do |z|
-    case z
-    when 'M'
-      if tmp == 100 then int += 900; tmp = 0
-      else int += (tmp + 1000); tmp = 0
-      end
-    when 'D'
-      if tmp == 100 then int += 400; tmp = 0
-      else int += (tmp + 500); tmp = 0
-      end
-    when 'C'
-      if tmp == 10 then int += 90; tmp = 0
-      else tmp += 100
-      end
-    when 'L'
-      if tmp == 10 then int += 40; tmp = 0
-      else int += (tmp + 50); tmp = 0
-      end
-    when 'X'
-      if tmp == 1 then int += 9;  tmp = 0
-      else tmp += 10
-      end
-    when 'V'
-      if tmp == 1 then int += 4; tmp = 0
-      else int += (tmp + 5); tmp = 0
-      end
-    when 'I' then tmp += 1
+  (0...rome.size).each do |i|
+    case rome[i]
+    when 'M' then results += 1000
+    when 'D' then results += 500
+    when 'C' then results += (%w'M D'.member? rome[i + 1]) ? -100 : 100
+    when 'L' then results += 50
+    when 'X' then results += (%w'C L'.member? rome[i + 1]) ? -10 : 10
+    when 'V' then results += 5
+    when 'I' then results += (%w'X V'.member? rome[i + 1]) ? -1 : 1
+    else
+      $stderr.puts "Bad character found (#{ rome[i] })! Exiting.."
+      exit 1
     end
   end
-
-  int += tmp
-
-  return int
+  results
 end
 
-
-if ARGV.length == 3
-  if "0"[0] <= ARGV[1][0] && ARGV[1][0] <= "9"[0]
-    arg1 = ARGV[1].to_i
-  else
-    arg1 = int_from_rome(ARGV[1])
-  end
-  if "0"[0] <= ARGV[2][0] && ARGV[2][0] <= "9"[0]
-    arg2 = ARGV[2].to_i
-  else
-    arg2 = int_from_rome(ARGV[2])
-  end
-  
-  case ARGV[0]
-  when "+"
-    puts "#{rome_from_int(arg1)} + #{rome_from_int(arg2)} = #{rome_from_int(arg1 + arg2)}"
-    puts "#{arg1} + #{arg2} + #{arg1 + arg2}"
-  when "-"
-    puts "#{rome_from_int(arg1)} - #{rome_from_int(arg2)} = #{rome_from_int(arg1 - arg2)}"
-    puts "#{arg1} - #{arg2} = #{arg1 - arg2}"
-  end
-
-else 
-  puts "Example usage: ./roman_math.rb + XVI IV"
-  puts "Example usage: ./roman_math.rb - VI IV"
+def usage
+  $stderr.puts "Usage: #{ $PROGRAM_NAME } command number number\n\n" \
+               "Example usage: #{ $PROGRAM_NAME } + XVI IV\n" \
+               "Example usage: #{ $PROGRAM_NAME } - VI IV"
+  exit 1
 end
 
-=begin
-Name: Roman Math
-Language: Ruby
-State: Done w/ bugs
+if __FILE__ == $PROGRAM_NAME
+  if ARGV.length == 3
+    cmd = ARGV[0]
+    arg1 = ARGV[1] =~ /^\d+$/ ? ARGV[1].to_i : int_from_rome(ARGV[1])
+    arg2 = ARGV[2] =~ /^\d+$/ ? ARGV[2].to_i : int_from_rome(ARGV[2])
 
-Do addition / subtraction in decimal and roman numbers and display the result in both
+    case cmd
+    when '-' then results = arg1 - arg2
+    when '+' then results = arg1 + arg2
+    else          usage
+    end
 
-
-Example: ./roman_math.rb + XVI IV
-Example2: ./roman_math.rb + 16 4
-=end
+    puts "#{ rome_from_int arg1 } #{ cmd } #{ rome_from_int arg2 }" \
+         " = #{ rome_from_int results }\n" \
+         "#{ arg1 } #{ cmd } #{ arg2 } = #{ results }"
+  else
+    usage
+  end
+end
