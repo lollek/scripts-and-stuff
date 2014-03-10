@@ -21,9 +21,13 @@
 wrassh()
 {
   local handle_this=0
+  local target var
+  for var; do
+    [[ $var =~ ^[[:alpha:]]+$ ]] && target=$var
+  done
 
   while IFS= read -r line; do
-    if [[ $line =~ ^Host[[:space:]]+$1[[:space:]]*$ ]]; then
+    if [[ $line =~ ^Host[[:space:]]+$target[[:space:]]*$ ]]; then
       handle_this=1
     elif [[ $handle_this == 1 && $line =~ ^[[:space:]] ]]; then
       local command=${line##*\#\!Script }
