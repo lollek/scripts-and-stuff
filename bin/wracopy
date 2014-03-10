@@ -1,0 +1,41 @@
+#! /bin/bash
+
+# Modification of wrassh for scp
+# Created 01/01/14
+
+wracopy()
+{
+  local handle_this=0
+  local hostname=$(echo "$@" | grep -o "[a-zA-Z0-9.]*:")
+  hostname=${hostname:0:-1}
+
+  while IFS= read -r line; do
+    if [[ $line =~ ^Host[[:space:]]+$hostname[[:space:]]*$ ]]; then
+      handle_this=1
+    elif [[ $handle_this == 1 && $line =~ ^[[:space:]] ]]; then
+      local command=${line##*\#\!Script }
+      if [[ ! $command =~ ^[[:space:]]+ ]]; then
+        echo "Executing $command"
+        $command
+        break
+      fi
+    else
+      handle_this=0
+    fi
+  done < ~/.ssh/config
+
+  exec $copytool "$@"
+}
+
+copytool=false
+case $(basename "$0") in
+  wrascp) copytool=scp ;;
+  wrasync) copytool=rsync ;;
+esac
+
+if [[ ! -z $1 ]]; then
+  wracopy "$@"
+else
+  ($copytool 2>&1 | sed "s/$copytool/$(basename "$0")/g" >&2)
+  exit 1
+fi
