@@ -1,14 +1,39 @@
 #! /bin/bash
-
-# Modification of wrassh for scp
 # Created 01/01/14
+# A very basic wrapper for running a script before a ssh/scp/rsync
+
+# Usage:
+# If you want to run "echo hello world" before you ssh to Host google,
+# and google looks like this in .ssh/config:
+#
+# Host google
+#   Hostname ssh.google.com
+#   User sshuser
+#
+# you should change it to this
+#
+# Host google
+#   Hostname ssh.google.com
+#   User sshuser
+#   #!Script echo hello world
+#
+# Then run it with wrassh <options> google
 
 wracopy()
 {
-  local handle_this=0
-  local hostname=$(echo "$@" | grep -o "[a-zA-Z0-9.]*:")
-  hostname=${hostname:0:-1}
+  # SSH has it's own name-lookup compared to scp/rsync
+  local hostname
+  if [[ $_tool == "ssh" ]]; then
+    for var; do
+      [[ $var =~ ^[[:alpha:]]+$ ]] && hostname=$var
+    done
+  else
+    hostname=$(echo "$@" | grep -o "[a-zA-Z0-9.]*:")
+    hostname=${hostname%:}
+  fi
 
+  # Find host in .ssh/config and exec the command
+  local handle_this=0
   while IFS= read -r line; do
     if [[ $line =~ ^Host[[:space:]]+$hostname[[:space:]]*$ ]]; then
       handle_this=1
@@ -24,18 +49,19 @@ wracopy()
     fi
   done < ~/.ssh/config
 
-  exec $copytool "$@"
+  exec $_tool "$@"
 }
 
-copytool=false
+_tool=false
 case $(basename "$0") in
-  wrascp) copytool=scp ;;
-  wrasync) copytool=rsync ;;
+  wrascp) _tool=scp ;;
+  wrasync) _tool=rsync ;;
+  wrassh) _tool=ssh ;;
 esac
 
 if [[ ! -z $1 ]]; then
   wracopy "$@"
 else
-  ($copytool 2>&1 | sed "s/$copytool/$(basename "$0")/g" >&2)
+  ($_tool 2>&1 | sed "s/$_tool/$(basename "$0")/g" >&2)
   exit 1
 fi
