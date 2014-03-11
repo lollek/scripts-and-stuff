@@ -28,7 +28,7 @@ wracopy()
       [[ $var =~ ^[[:alpha:]]+$ ]] && hostname=$var
     done
   else
-    hostname=$(echo "$@" | grep -o "[a-zA-Z0-9.]*:")
+    hostname=$(echo "$@" | grep -o "[a-zA-Z0-9.]+:")
     hostname=${hostname%:}
   fi
 
