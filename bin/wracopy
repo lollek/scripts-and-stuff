@@ -25,7 +25,7 @@ wracopy()
   local hostname
   if [[ $_tool == "ssh" ]]; then
     for var; do
-      [[ $var =~ ^[[:alpha:]]+$ ]] && hostname=$var
+      [[ $var =~ ^[[:alpha:]]+$ ]] && hostname=$var && break;
     done
   else
     hostname=$(echo "$@" | grep -o "[a-zA-Z0-9.]+:")
