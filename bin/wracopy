@@ -28,9 +28,10 @@ wracopy()
       [[ $var =~ ^[[:alpha:]]+$ ]] && hostname=$var && break;
     done
   else
-    hostname=$(echo "$@" | grep -o "[a-zA-Z0-9.]+:")
+    hostname=$(echo "$@" | grep -Eo "[a-zA-Z0-9.]+:")
     hostname=${hostname%:}
   fi
+  echo "hostname; $hostname"
 
   # Find host in .ssh/config and exec the command
   local handle_this=0
