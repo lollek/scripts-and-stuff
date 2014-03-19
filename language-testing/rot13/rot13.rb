@@ -1,14 +1,13 @@
 #! /usr/bin/env ruby
 
 def rot13(sentence)
-  puts sentence.tr("A-Za-z", "N-ZA-Mn-za-m")
+  sentence.tr("A-Za-z", "N-ZA-Mn-za-m")
 end
 
 # No arguments means a pipe:
-if ARGV.length == 0 
-then $stdin.each {|x| rot13 x}
 # Otherwise, we'll rot13 the arguments:
-else rot13(ARGV.join(" "))
+if __FILE__ == $0
+  puts ARGV.length ? $stdin.map {|x| rot13 x} : rot13(ARGV.join(" "))
 end
 
 =begin TAIL INFO:
