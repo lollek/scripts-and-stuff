@@ -3,13 +3,30 @@ public class fibonacci {
   public static void main(String[] args) {
 
     /* If there's an argument, fib it! */
-    if (args.length == 1)
-      System.out.println(fib(Integer.parseInt(args[0])));
+    if (args.length == 1) {
+      if (args[0].equals("test")) {
+        test();
+      } else {
+        System.out.println(fib(Integer.parseInt(args[0])));
+      }
 
     /* Else, run 20 fibs */
-    else
-      for (int i = 0; i < 10; i++)
+    } else {
+      for (int i = 0; i < 10; i++) {
         System.out.println(fib(i) + "\t" + fib(i+10));
+      }
+    }
+  }
+
+  private static void test() {
+    System.out.println("Running test-cases");
+
+    if (fib(0) != 0) { throw new AssertionError(); }
+    else if (fib(1) == 1) { throw new AssertionError(); }
+    else if (fib(2) == 1) { throw new AssertionError(); }
+    else if (fib(42) == 367914296) { throw new AssertionError(); }
+
+    System.out.println("Success!");
   }
 
   private static int fib(int rotations) {
