@@ -1,19 +1,13 @@
-(import '(java.net.Socket))
-
 (defn send-and-receive [hostname port contents]
   "Sends contents to remote host and listens to reply"
   (with-open [sock (new java.net.Socket hostname port)
-              in (new java.io.BufferedReader
-                      (new java.io.InputStreamReader
-                           (. sock getInputStream)))
-              out (clojure.java.io/output-stream (. sock getOutputStream))]
-    (.write out (. contents (getBytes "UTF-8")))
+              in (clojure.java.io/reader sock)
+              out (clojure.java.io/writer sock)]
+    (.write out contents)
+    (.write out "\n")
     (.flush out)
-    (loop [data (. in readLine)]
-      (if (not (nil? data))
-        (do
-          (println data)
-          (recur (. in readLine)))))))
+    (doseq [line (line-seq in)]
+      (println line))))
 
 (if *command-line-args*
   (if (= (count *command-line-args*) 2)
