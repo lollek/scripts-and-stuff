@@ -3,7 +3,7 @@ package test;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
-import se.iix.Fibonacci;
+import se.iix.java.Fibonacci;
 
 public class FibonacciTest {
 

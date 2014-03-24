@@ -1,4 +1,4 @@
-package se.iix;
+package se.iix.java;
 
 /**
  * Fibonacci
