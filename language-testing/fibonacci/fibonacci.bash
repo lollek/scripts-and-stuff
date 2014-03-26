@@ -1,5 +1,4 @@
 #! /bin/bash
-set -e
 
 fib() {
   old_val=1
@@ -14,15 +13,6 @@ fib() {
   echo -n $new_val
 }
 
-test_fib() {
-  echo "Running test-cases"
-  [[ $(fib 0) == 0 ]] || (echo "Error @ fib 0" && exit 1)
-  [[ $(fib 1) == 1 ]] || (echo "Error @ fib 0" && exit 1)
-  [[ $(fib 2) == 1 ]] || (echo "Error @ fib 0" && exit 1)
-  [[ $(fib 42) == 267914296 ]] || (echo "Error @ fib 0" && exit 1)
-  echo "Success!"
-}
-
 if [[ -z $1 ]]; then
   for ((r=0; r < 10; ++r)); do
     fib $r
@@ -30,8 +20,7 @@ if [[ -z $1 ]]; then
     fib $((r + 10))
     echo
   done
-elif [[ $1 == "test" ]]; then
-  test_fib
 else
   fib $1
+  echo
 fi
