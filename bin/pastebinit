@@ -6,14 +6,19 @@ from urllib.request import urlopen
 from urllib.parse import urlencode
 
 def main(args):
-    data = { "code2": stdin.read()
-           , "expiry": args.expiry
-           , "format": args.format
-           , "parent_pid": ""
-           , "paste": "Send"
-           , "poster": "anonymous"
-           }
-    print(urlopen('http://pastebin.mozilla.org/', urlencode(data).encode()).geturl())
+    try:
+        args.file = open(args.file) if args.file != stdin else stdin
+    except BaseException as e:
+        print(e)
+    else:
+        data = { "code2": args.file.read()
+               , "expiry": args.expiry
+               , "format": args.format
+               , "parent_pid": ""
+               , "paste": "Send"
+               , "poster": "anonymous"
+               }
+        print(urlopen('http://pastebin.mozilla.org/', urlencode(data).encode()).geturl())
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -21,6 +26,8 @@ if __name__ == "__main__":
                         help="programming language")
     parser.add_argument("-e", dest="expiry", default="d",
                         help="(d)ay, (m)onth or (y)ear")
+    parser.add_argument("file", nargs="?", default=stdin,
+                        help="File to read (default: stdin)")
     args = parser.parse_args()
     main(args)
 
