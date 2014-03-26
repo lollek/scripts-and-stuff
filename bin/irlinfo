@@ -33,13 +33,23 @@ def die err
   exit 1
 end
 
-def get_data name, surname
+def htmlescape string
   # Encode name and surname to ISO-8859-1 and then HTML-escape it
-  [name, surname].each do |string|
-    string = string.encode("ISO-8859-1").gsub(/([^ a-zA-Z0-9_.-]+)/) do |char|
-      '%' + char.unpack('H2' * char.bytesize).join('%')
-    end.tr(' ', '+')
-  end
+  string.encode("ISO-8859-1").gsub(/([^ a-zA-Z0-9_.-]+)/) do |char|
+    '%' + char.unpack('H2' * char.bytesize).join('%')
+  end.tr(' ', '+')
+end
+
+def purge_black_encoding string
+  # Encode HTML-escaped ISO-8859-1-bytestring to UTF-8
+  string.tr('+', ' ').force_encoding(Encoding::ASCII_8BIT)
+  .gsub(/((?:%[0-9a-fA-F]{2})+)/) do |char|
+    [char.delete('%')].pack('H*')
+  end.force_encoding("ISO-8859-1").encode("UTF-8")
+end
+
+def get_data name, surname
+  name, surname = htmlescape(name), htmlescape(surname)
 
   # Send request - receive HTML-body
   data = ""
@@ -47,14 +57,6 @@ def get_data name, surname
     sock.print "GET /sok/?f=#{name}&l=#{surname} HTTP/1.1\r\n" +
                "Host: www.birthday.se\r\nConnection: close\r\n\r\n"
     data = sock.read
-  end
-
-  # Encode HTML-escaped ISO-8859-1-bytestring to UTF-8
-  def purge_black_encoding string
-    string.tr('+', ' ').force_encoding(Encoding::ASCII_8BIT)
-    .gsub(/((?:%[0-9a-fA-F]{2})+)/) do |char|
-      [char.delete('%')].pack('H*')
-    end.force_encoding("ISO-8859-1").encode("UTF-8")
   end
 
   # Convert HTML-body to a list of LookupPersons
