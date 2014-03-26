@@ -6,11 +6,11 @@ require 'socket'
 class LookupPerson
   attr_reader :name, :addr, :age
 
-  def initialize redata
+  def initialize(redata)
     @name_raw = redata[0]
     @addr_raw, @age_raw = redata[1].split("På samma adress</a>")
 
-    def prettify string
+    def prettify(string)
       string.gsub /<.*?>/, ''
     end
 
@@ -28,19 +28,19 @@ class LookupPerson
   end
 end
 
-def die err
+def die(err)
   $stderr.puts err
   exit 1
 end
 
-def htmlescape string
+def htmlescape(string)
   # Encode name and surname to ISO-8859-1 and then HTML-escape it
   string.encode("ISO-8859-1").gsub(/([^ a-zA-Z0-9_.-]+)/) do |char|
     '%' + char.unpack('H2' * char.bytesize).join('%')
   end.tr(' ', '+')
 end
 
-def purge_black_encoding string
+def purge_black_encoding(string)
   # Encode HTML-escaped ISO-8859-1-bytestring to UTF-8
   string.tr('+', ' ').force_encoding(Encoding::ASCII_8BIT)
   .gsub(/((?:%[0-9a-fA-F]{2})+)/) do |char|
@@ -48,13 +48,12 @@ def purge_black_encoding string
   end.force_encoding("ISO-8859-1").encode("UTF-8")
 end
 
-def get_data name, surname
-  name, surname = htmlescape(name), htmlescape(surname)
-
+def get_data(name, surname)
   # Send request - receive HTML-body
   data = ""
   TCPSocket.open "birthday.se", 80 do |sock|
-    sock.print "GET /sok/?f=#{name}&l=#{surname} HTTP/1.1\r\n" +
+    sock.print "GET /sok/?f=#{htmlescape name}&" +
+               "l=#{htmlescape surname} HTTP/1.1\r\n" +
                "Host: www.birthday.se\r\nConnection: close\r\n\r\n"
     data = sock.read
   end
@@ -65,14 +64,15 @@ def get_data name, surname
    .map {|person| LookupPerson.new person}
 end
 
-def main name, surname
+def main(name, surname)
   print "Söker..."
   $stdout.flush
   list = get_data name, surname
 
   case list.length
-  when 0 then 
-    die "0 träffar"
+  when 0 then
+    puts "0 träffar"
+    exit 0
   when 1 then
     puts "1 träff\n#{list[0].info}"
     exit 0
@@ -88,7 +88,6 @@ def main name, surname
   sel = $stdin.gets.to_i
   puts "\n#{list[sel -1].info}" if sel > 0 and list[sel -1]
 end
-
 
 if __FILE__ == $0
   die "Usage #{$0} name surname" unless ARGV.length == 2
