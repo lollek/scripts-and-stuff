@@ -19,7 +19,7 @@ def main():
               item.getElementsByTagName("title").item(0).firstChild.data,
               sep="\n")
 
-    save_config(url, date)
+    save_config(url, last_update)
 
 def string_to_dom(string):
     "Takes an XML string and turns it into a DOM object"
