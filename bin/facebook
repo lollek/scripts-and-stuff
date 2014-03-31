@@ -1,0 +1,51 @@
+#! /usr/bin/env python3
+
+import os
+import os.path
+import sys
+import urllib.request
+import xml.dom.minidom
+
+
+def main():
+    url, date = load_config()
+    data = string_to_dom(load_http_data(url))
+    last_update = data.getElementsByTagName(
+                    "lastBuildDate").item(0).firstChild.data
+    if last_update == date: return
+
+    for item in data.getElementsByTagName("item"):
+        print(item.getElementsByTagName("pubDate").item(0).firstChild.data,
+              item.getElementsByTagName("title").item(0).firstChild.data,
+              sep="\n")
+
+    save_config(url, date)
+
+def string_to_dom(string):
+    "Takes an XML string and turns it into a DOM object"
+    return xml.dom.minidom.parseString(string)
+
+def load_http_data(url):
+    "Returns the body of the page mentioned in the url"
+    http_data = urllib.request.urlopen(url, capath="/etc/ssl/certs")
+    if http_data.status != 200:
+        print("Failed to get any data. Response: %d %s" % 
+              (http_data.status, http_data.reason))
+        sys.exit(1)
+    return http_data.read()
+
+def load_config():
+    """
+    Returns a tuple of (URL, DATE) where url is the url to
+    the facebook rss and the date is the date when last checked
+    """
+    with open(os.path.join(os.getenv("HOME"), ".facebookrss")) as f:
+        return f.read().split("\n")[0:2]
+
+def save_config(url, date):
+    "Saves the url and date so it can be loaded with load_config()"
+    with open(os.path.join(os.getenv("HOME"), ".facebookrss"), "w") as f:
+        print("\n".join([url, date]), file=f)
+
+if __name__ == "__main__":
+    main()
