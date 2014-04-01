@@ -3,6 +3,7 @@
 import os
 import os.path
 import sys
+import datetime
 import urllib.request
 import xml.dom.minidom
 
@@ -10,16 +11,28 @@ import xml.dom.minidom
 def main():
     url, date = load_config()
     data = string_to_dom(load_http_data(url))
-    last_update = data.getElementsByTagName(
-                    "lastBuildDate").item(0).firstChild.data
+    last_update = get_elem(data, "lastBuildDate")
     if last_update == date: return
 
     for item in data.getElementsByTagName("item"):
-        print(item.getElementsByTagName("pubDate").item(0).firstChild.data,
-              item.getElementsByTagName("title").item(0).firstChild.data,
-              sep="\n")
+        if time_to_datetime(date) < time_to_datetime(get_elem(item, "pubDate")):
+            print(get_elem(item, "pubDate"), get_elem(item, "title"), sep="\n")
+        else:
+            break
 
     save_config(url, last_update)
+
+def get_elem(root, query):
+    "Shorten the getElementsByTagName thing because it's too long for my taste"
+    return root.getElementsByTagName(query).item(0).firstChild.data
+
+def time_to_datetime(time_string):
+    """
+    Takes a string that looks like this:
+        Tue, 01 Apr 2014 08:47:28 -0100
+    and returns a datetime object
+    """
+    return datetime.datetime.strptime(time_string, "%a, %d %b %Y %H:%M:%S %z")
 
 def string_to_dom(string):
     "Takes an XML string and turns it into a DOM object"
