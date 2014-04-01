@@ -40,10 +40,15 @@ def string_to_dom(string):
 
 def load_http_data(url):
     "Returns the body of the page mentioned in the url"
-    http_data = urllib.request.urlopen(url, capath="/etc/ssl/certs")
-    if http_data.status != 200:
-        print("Failed to get any data. Response: %d %s" % 
-              (http_data.status, http_data.reason))
+    try:
+        http_data = urllib.request.urlopen(url, capath="/etc/ssl/certs")
+        if http_data.status != 200:
+            raise Exception(http_data.reason)
+    except urllib.error.URLError as e:
+        print("urlopen: %s" % e.reason)
+        sys.exit(1)
+    except (Exception, socket.gaierror) as e:
+        print("urlopen: %s" % e)
         sys.exit(1)
     return http_data.read()
 
