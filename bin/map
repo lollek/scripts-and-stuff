@@ -1,0 +1,25 @@
+#! /bin/bash
+
+function die() {
+  echo "$1" >&2
+  exit 1
+}
+
+[[ $1 == "{" ]] || die "ERROR: Command did not start with {"
+shift
+
+# Build command
+cmd=
+while [[ $1 != "}" ]]; do
+  [[ -z $1 ]] && die "ERROR: Command did contain a }"
+  cmd+="$1 "
+  shift
+done
+shift
+[[ -z $cmd ]] && exit
+
+
+# Replace $ with filename and execute
+for tmp in "$@"; do
+  eval "${cmd//\$/$tmp}"
+done
