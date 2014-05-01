@@ -1,0 +1,46 @@
+#! /usr/bin/env perl
+
+my $JAILDIR = "/srv/http";
+
+sub echorun {
+  print "$_[0]\n";
+  system($_[0]) if !$<;
+}
+
+print "\033[1;33mSynchronizing folders\033[0m\n";
+my @dirs = ("/usr/share/nginx/", "/var/lib/nginx");
+foreach (@dirs) {
+  &echorun("rsync -r $_ $JAILDIR$_");
+}
+print "\n";
+
+print "\033[1;33mSynchronizing bins\033[0m\n";
+my @files = ("/usr/sbin/nginx");
+foreach (@files) {
+  &echorun("rsync $_ $JAILDIR$_");
+}
+print "\n";
+
+print "\033[1;33mSynchronizing lib\033[0m\n";
+my @ldds = split("\n", `ldd /usr/sbin/nginx`);
+foreach (@ldds) {
+  if (m/(\/lib\/.*)\s/) {
+    &echorun("rsync -L $1 $JAILDIR$1");
+  }
+}
+my @libnss = </usr/lib/libnss_*>;
+foreach(@libnss) {
+  &echorun("rsync -l $_ $JAILDIR$_");
+}
+print "\n";
+
+print "\033[1;33mRestricting access\033[0m\n";
+&echorun("find $JAILDIR/ -gid 0 -uid 0 -type d -print | xargs chmod -c -rw");
+&echorun("find $JAILDIR/ -gid 0 -uid 0 -type d -print | xargs chmod -c u+x");
+&echorun("chmod -c +rw $JAILDIR/tmp");
+&echorun("chmod -c +rw $JAILDIR/run");
+&echorun("find $JAILDIR/etc -gid 0 -uid 0 -type f -print | xargs chmod -c -x");
+&echorun("find $JAILDIR/ -gid 33 -uid 33 -print | xargs chmod -c o-rwx");
+&echorun("setcap 'cap_net_bind_service=+ep' $JAILDIR/usr/sbin/nginx");
+
+warn "\nNothing executed since you're not root\n" if $<;
