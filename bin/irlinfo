@@ -89,7 +89,6 @@ def die(err)
   exit 1
 end
 
-
 def main(name, surname)
   # Find person
   print "Söker..."; $stdout.flush
@@ -111,12 +110,17 @@ def main(name, surname)
     puts "10+ träffar:\n"
   end
 
+  # Ask for selection if 2+ results
   if selected_person.nil?
-    puts list.map.with_index {|person, i| "#{i +1}: #{person.abstract}"}
+    puts list.map.with_index { |person, i|
+      person = person.abstract
+      .gsub(/(?<=^|\s)#{name}(?=\s|$)/, "\033[1;33m#{name}\033[0m")
+      .gsub(/(?<=^|\s)#{surname}(?=\s|$)/, "\033[1;33m#{surname}\033[0m")
+      "#{i +1}: #{person}"}
+
     print "Vem? "; $stdout.flush
-    selected_person = $stdin.gets.to_i
-    exit if selected_person == 0 || list[selected_person -1].nil?
-    selected_person = list[selected_person -1]
+    selected_person = (i = $stdin.gets.to_i) == 0 ? nil : list[i -1]
+    exit if selected_person.nil?
   end
 
   puts "\n#{selected_person.info}"
