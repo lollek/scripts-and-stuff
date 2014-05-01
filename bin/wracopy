@@ -21,15 +21,15 @@
 
 wracopy()
 {
-  # SSH has it's own name-lookup compared to scp/rsync
   local hostname
-  if [[ $_tool == "ssh" ]]; then
-    for var; do
-      [[ $var =~ ^[[:alpha:]]+$ ]] && hostname=$var && break;
-    done
+
+  if [[ $_tool == "ssh" && "$@" =~ [[:alnum:].]+ ]]; then
+    hostname=$BASH_REMATCH
+  elif [[ "$@" =~ [[:alnum:].]+: ]]; then
+    hostname=${BASH_REMATCH%:}
   else
-    hostname=$(echo "$@" | grep -Eo "[a-zA-Z0-9.]+:")
-    hostname=${hostname%:}
+    echo "$(basename $0): no hostname found" >&2
+    exit 1
   fi
 
   # Find host in .ssh/config and exec the command
