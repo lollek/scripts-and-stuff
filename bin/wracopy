@@ -54,9 +54,13 @@ wracopy()
 
 _tool=false
 case $(basename "$0") in
-  wrascp) _tool=scp ;;
-  wrasync) _tool=rsync ;;
-  wrassh) _tool=ssh ;;
+  *scp*) _tool=scp ;;
+  *sync*) _tool=rsync ;;
+  *ssh*) _tool=ssh ;;
+  *)
+    echo "$0: Bad filename!" >&2
+    exit 1
+    ;;
 esac
 
 if [[ ! -z $1 ]]; then
