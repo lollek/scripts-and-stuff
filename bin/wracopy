@@ -56,7 +56,7 @@ _tool=false
 case $(basename "$0") in
   *scp*) _tool=scp ;;
   *sync*) _tool=rsync ;;
-  *ssh*) _tool=ssh ;;
+  *ssh*|*mosh*) _tool=ssh ;;
   *)
     echo "$0: Bad filename!" >&2
     exit 1
