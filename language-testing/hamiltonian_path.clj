@@ -7,10 +7,10 @@
 ; 3-|---2 |
 ;  \|    \|
 ;   7-----6
-(defn available-paths [data, current]
+(defn available-paths [data  current]
   "Returns the amount of neighbours which we have not yet visited"
-  (let [neighbour-data [[1,3,4],[0,2,5],[1,3,6],[0,2,7],
-                       [0,5,7],[1,4,6],[2,5,7],[3,4,6]]]
+  (let [neighbour-data [[1 3 4] [0 2 5] [1 3 6] [0 2 7]
+                       [0 5 7] [1 4 6] [2 5 7] [3 4 6]]]
     (filter #(nil? (data %)) (neighbour-data current))))
 
 (defn try-next [data current]
