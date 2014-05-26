@@ -16,7 +16,7 @@
   (println "Success!"))
 
 (if *command-line-args*
-  (if (.equals (nth *command-line-args* 0) "test")
+  (if (= (nth *command-line-args* 0) "test")
     (test_fib)
     (println (fib (read-string (nth *command-line-args* 0)))))
   (doseq [n (range 0 10)]
