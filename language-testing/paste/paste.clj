@@ -1,14 +1,11 @@
 (defn paste [filename1 filename2 delim]
-  (defn safe-head [x]
-    (if (nil? x) "" (first x)))
   (with-open [file1 (clojure.java.io/reader filename1)
               file2 (clojure.java.io/reader filename2)]
     (loop [line1 (line-seq file1)
            line2 (line-seq file2)]
-      (if (or line1 line2)
-        (do
-          (printf "%s%s%s\n" (safe-head line1) delim (safe-head line2))
-          (recur (next line1) (next line2)))))))
+      (when (or line1 line2)
+        (printf "%s%s%s\n" (str (first line1)) delim (str (first line2)))
+        (recur (next line1) (next line2))))))
 
 (defn parse-args [a b c]
   "Finds the delimiter (e.g. -d;)"
