@@ -1,4 +1,4 @@
-(defn roman-to-decimal [word]
+(defn roman->decimal [word]
   "Turns a roman number into a decimal, e.g. XV to 15"
   ((fn [word result]
      (let [curr (first word)
@@ -26,7 +26,7 @@
            -1))))
    word 0))
 
-(defn decimal-to-roman [word]
+(defn decimal->roman [word]
   "Turns a decimal number into roman, e.g. 15 to XV"
   ((fn [number result]
      (condp <= number
@@ -47,13 +47,13 @@
    word ""))
 
 
-(defn is-digit? [num] (some #{num} "0123456789"))
-(defn is-roman? [num] (some #{num} "MDCLXVI"))
+(defn digit? [num] (some #{num} "0123456789"))
+(defn roman? [num] (some #{num} "MDCLXVI"))
 
 (if *command-line-args*
   (doseq [i *command-line-args*]
     (cond
-      (every? is-digit? i) (println (decimal-to-roman (read-string i)))
-      (every? is-roman? i) (println (roman-to-decimal i))
+      (every? digit? i) (println (decimal->roman (read-string i)))
+      (every? roman? i) (println (roman->decimal i))
       :else (println "Error: Unknown characters received")))
   (println "Example usage: ./progname XVI or ./progname 15"))
