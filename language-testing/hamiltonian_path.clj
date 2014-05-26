@@ -16,10 +16,9 @@
 (defn try-next [data current]
   (let [old-data-num (count(filter (complement nil?) data))
         new-data (assoc-in data [current] old-data-num)]
-    (if (not-any? nil? new-data)
-      1
-      (reduce + (map #(try-next new-data %)
-                     (available-paths new-data current))))))
+    (if (some nil? new-data)
+      (reduce + (map #(try-next new-data %) (available-paths new-data current)))
+      1)))
 
 (defn try-all []
   (let [data [nil nil nil nil nil nil nil nil]]
