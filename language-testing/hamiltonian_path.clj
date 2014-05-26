@@ -16,7 +16,7 @@
 (defn try-next [data current]
   (let [old-data-num (count(filter (complement nil?) data))
         new-data (assoc-in data [current] old-data-num)]
-    (if (empty? (filter nil? new-data))
+    (if (not-any? nil? new-data)
       1
       (reduce + (map #(try-next new-data %)
                      (available-paths new-data current))))))
