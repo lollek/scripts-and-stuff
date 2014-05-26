@@ -1,11 +1,10 @@
 (defn fib [x]
   "Returns the nth fibonacci"
-  (defn fib_ [new_value old_value times]
-    "Tail recursive fibonacci"
-    (if (< times 1)
-      new_value
-      (fib_ (+ new_value old_value) new_value (- times 1))))
-  (fib_ 0 1 x))
+  ((fn [new-value old-value times]
+     (if (> times 0)
+       (recur (+ new-value old-value) new-value (dec times))
+       new-value))
+   0 1 x))
 
 (defn test_fib []
   "Tests fib function"
@@ -21,5 +20,5 @@
     (test_fib)
     (println (fib (read-string (nth *command-line-args* 0)))))
   (doseq [n (range 0 10)]
-    (println (str (fib n) "\t" (fib (+ n 10))))))
+    (printf "%d\t%d\n" (fib n) (fib (+ n 10)))))
 
