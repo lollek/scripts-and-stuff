@@ -1,12 +1,12 @@
 ;; Helper function
-(defn calculate-cubic [p, q, r, s, x]
+(defn calculate-cubic [p q r s x]
   "Returns px^3+qx^2+rx+s"
   (+ (* p (reduce * (repeat 3 x)))
      (* q (reduce * (repeat 2 x)))
      (* r x)
      s))
 
-(defn calculate-derivata [p, q, r, x]
+(defn calculate-derivata [p q r x]
   "Returns 3px^2+2qx+r"
   (+ (* p (reduce * (repeat 2 x)) 3)
      (* q x 2)
@@ -26,7 +26,7 @@
 
 
 ;; Main functions
-(defn interval-halving [p, q, r, s, a, b, max-permitted-diff]
+(defn interval-halving [p q r s a b max-permitted-diff]
   "Solves px^3+qx^2+rx+s = 0"
 
   ; Loop until the diff between a and b is less than the max permitted one
@@ -56,7 +56,7 @@
               (double test-a) (double test-b)))))
 
 
-(defn newton-raphson [p, q, r, s x0, max-permitted-diff]
+(defn newton-raphson [p q r s x0 max-permitted-diff]
   "Solves px^3+qx^2+rx+s = 0"
   (loop [i 1 c x0]
     (let [dc (- c
