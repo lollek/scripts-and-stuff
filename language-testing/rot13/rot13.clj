@@ -4,10 +4,10 @@
     (let [low (compare c \a)
           high (compare c \A)]
       (cond
-        (and (<= 0 low) (< low 13)) (char (+ (int c) 13))
-        (and (<= 13 low) (< low 26)) (char (- (int c) 13))
-        (and (<= 0 high) (< high 13)) (char (+ (int c) 13))
-        (and (<= 13 high) (< high 26)) (char (- (int c) 13))
+        (<=  0 low  12) (char (+ (int c) 13))
+        (<= 13 low  25) (char (- (int c) 13))
+        (<=  0 high 12) (char (+ (int c) 13))
+        (<= 13 high 25) (char (- (int c) 13))
         :else c)))
   (apply str (map rot_char x)))
 
