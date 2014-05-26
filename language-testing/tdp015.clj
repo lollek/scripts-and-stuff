@@ -39,8 +39,7 @@
         (cond
           (or (= calculated-c 0)
               (< current-diff max-permitted-diff))
-            (printf "Interval halving: x is %f +/- %f after %d iterations\n"
-                    (double c) (double current-diff) i)
+          [(double c) (double current-diff) i]
           (> calculated-c 0) (recur (inc i) a c)
           (< calculated-c 0) (recur (inc i) c b)))))
 
@@ -48,13 +47,13 @@
   (let [test-a (calculate-cubic p q r s a)
         test-b (calculate-cubic p q r s b)]
     (cond
-      (and (<= test-a 0) (>= test-b 0))
-        (inner-fun p q r s a b max-permitted-diff)
-      (and (>= test-a 0) (<= test-b 0))
-        (inner-fun p q r s b a max-permitted-diff)
+      (<= test-a 0 test-b )
+      (inner-fun p q r s a b max-permitted-diff)
+      (<= test-b 0 test-a )
+      (inner-fun p q r s b a max-permitted-diff)
       :else
-        (printf "There is no f(x)=0 between a(%f) and b(%f)!\n"
-                (double test-a) (double test-b)))))
+      (printf "There is no f(x)=0 between a(%f) and b(%f)!\n"
+              (double test-a) (double test-b)))))
 
 
 (defn newton-raphson [p, q, r, s x0, max-permitted-diff]
@@ -65,8 +64,7 @@
                    (calculate-derivata p q r c)))
           current-diff (/ (abs (- dc c)) (abs dc))]
       (if (< current-diff max-permitted-diff)
-        (printf "Newton-Raphson: x is %f +/- %f after %d iterations\n"
-                (double dc) (float current-diff) i)
+        [(double dc) (float current-diff) 1]
         (recur (inc i) dc)))))
 
 ;; Main
@@ -80,5 +78,7 @@
       x (fetch-num "Provide x0 for Newton-Raphson: ")
       n (fetch-num "Provide decimal precision: ")
       max-permitted-diff (/ 1 (reduce * (repeat n 10)))]
-  (interval-halving p q r s a b max-permitted-diff)
-  (newton-raphson p q r s x max-permitted-diff))
+  (apply printf "Interval halving: x is %f +/- %f after %d iterations\n"
+         (interval-halving p q r s a b max-permitted-diff))
+  (apply printf "Newton-Raphson: x is %f +/- %f after %d iterations\n"
+         (newton-raphson p q r s x max-permitted-diff)))
