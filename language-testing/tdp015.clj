@@ -12,12 +12,6 @@
      (* q x 2)
      r))
 
-(defn abs [num]
-  "Returns num as a positive value"
-  (if (<= 0 num)
-    num
-    (- 0 num)))
-
 (defn fetch-num [query]
   "Returns a num from user"
   (print query)
@@ -62,7 +56,7 @@
     (let [dc (- c
                 (/ (calculate-cubic p q r s c)
                    (calculate-derivata p q r c)))
-          current-diff (/ (abs (- dc c)) (abs dc))]
+          current-diff (/ (Math/abs (- dc c)) (Math/abs dc))]
       (if (< current-diff max-permitted-diff)
         [(double dc) (float current-diff) 1]
         (recur (inc i) dc)))))
