@@ -1,7 +1,7 @@
 (defn fib [x]
   "Returns the nth fibonacci"
   ((fn [new-value old-value times]
-     (if (> times 0)
+     (if (pos? times)
        (recur (+ new-value old-value) new-value (dec times))
        new-value))
    0 1 x))
