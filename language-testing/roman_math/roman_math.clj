@@ -1,30 +1,18 @@
-(defn roman->decimal [word]
+
+(defn digit? [num] (some #{num} "0123456789"))
+(defn roman? [num] (some #{num} "MDCLXVI"))
+
+(defn roman->decimal [roman-word]
   "Turns a roman number into a decimal, e.g. XV to 15"
-  ((fn [word result]
-     (let [curr (first word)
-           tail (rest word)]
-       (case curr
-         nil result
-         \M (recur tail (+ result 1000))
-         \D (recur tail (+ result 500))
-         \C (case (first tail)
-              \M (recur (rest tail) (+ result 900))
-              \D (recur (rest tail) (+ result 400))
-                 (recur       tail  (+ result 100)))
-         \L (recur tail (+ result 50))
-         \X (case (first tail)
-              \C (recur (rest tail) (+ result 90))
-              \L (recur (rest tail) (+ result 40))
-                 (recur       tail  (+ result 10)))
-         \V (recur tail (+ result 5))
-         \I (case (first tail)
-              \X (recur (rest tail) (+ result 9))
-              \V (recur (rest tail) (+ result 4))
-                 (recur       tail  (+ result 1)))
-         (do
-           (printf "Non-roman character received (%c)\n" curr)
-           -1))))
-   word 0))
+  (let [->number {\M 1000 \D 500 \C 100 \L 50 \X 10 \V 5 \I 1}
+        negative-values {\C "MD" \X "CL" \I "XV"}]
+    ((fn [word result]
+       (if-let [this (roman? (first word))]
+         (if-let [next- (some #{(first (rest word))} (negative-values this))]
+           (recur (drop 2 word) (+ result (- (->number next-) (->number this))))
+           (recur (drop 1 word) (+ result (->number this))))
+         result))
+     roman-word 0)))
 
 (defn decimal->roman [word]
   "Turns a decimal number into roman, e.g. 15 to XV"
@@ -47,8 +35,6 @@
    word ""))
 
 
-(defn digit? [num] (some #{num} "0123456789"))
-(defn roman? [num] (some #{num} "MDCLXVI"))
 
 (if *command-line-args*
   (doseq [i *command-line-args*]
