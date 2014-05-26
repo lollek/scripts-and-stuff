@@ -11,10 +11,11 @@
           (recur (next line1) (next line2)))))))
 
 (defn parse-args [a b c]
+  "Finds the delimiter (e.g. -d;)"
   (cond
-    (.equals (subs a 0 2) "-d") (paste b c (subs a 2))
-    (.equals (subs b 0 2) "-d") (paste a c (subs b 2))
-    (.equals (subs c 0 2) "-d") (paste a b (subs c 2))
+    (= (subs a 0 2) "-d") (paste b c (subs a 2))
+    (= (subs b 0 2) "-d") (paste a c (subs b 2))
+    (= (subs c 0 2) "-d") (paste a b (subs c 2))
     :else (println "Usage: ./paste FILE1 FILE2 [-d DELIM]")))
 
 (let [argv *command-line-args*
