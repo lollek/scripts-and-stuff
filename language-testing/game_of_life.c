@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
 Name: Game of Life
 Language: C
 State: Done
-Compile: cc game_of_life.c -std=c99 -O3 -lcurses -o game_of_life
+Compile: cc game_of_life.c -O3 -lcurses -o game_of_life
 
 Display randomized game of life
 
