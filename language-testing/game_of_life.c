@@ -1,129 +1,136 @@
-
-#include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
 #include <curses.h>
 
-int init_random_map(int** map, int maxyx) {
-  if (*map != NULL) {
-    fprintf(stderr, "map already malloc'd\n");
-    return 1;
-  }
-
-  *map = (int *)malloc(sizeof(int) * maxyx);
-  if (*map == NULL) {
-    fprintf(stderr, "Failed to malloc map\n");
-    return 1;
-  }
-
-  /* Fill map with 1's and 0's: (>1 will later be treated as a 0) */
-  for (int i = 0, *mapp = map[0]; i < (maxyx); i++, mapp++) {
-    *mapp = rand() % 5;
-  }
-  return 0;
+/* Swap pointer data with each other */
+void swap(int **ptr1, int **ptr2) {
+  int *tmp = *ptr1;
+  *ptr1 = *ptr2;
+  *ptr2 = tmp;
 }
 
 /* Draw a map to screen (1s are white, 0s are black) */
-int draw_screen(int **map, int maxx, int maxy) {
-  int err = 0;
-  int maxyx = maxy * maxx;
+void draw_screen(int *map, int max_x, int max_y) {
+  const chtype WHITE_SYM = ' ' | A_REVERSE;
+  const chtype BLACK_SYM = ' ';
+  int x, y;
 
-  for (int i = 0, *mapp = map[0]; i < maxyx; i++, mapp++) {
-    if (*mapp == 1) {
-      attron(A_REVERSE);
-      err += mvaddch(i / maxx, i % maxx, ' ');
-      attroff(A_REVERSE);
-    } else {
-      err += mvaddch(i / maxx, i % maxx, ' ');
+  for (y = 0; y < max_y; ++y) {
+    for (x = 0; x < max_x; ++x) {
+      mvaddch(y, x, map[y * max_x + x] ? WHITE_SYM : BLACK_SYM);
     }
   }
   refresh();
-  return err;
 }
 
-int wrap_around(int num, int maxyx) {
-  if (num < 0) {
-    return maxyx -1 -num;
-  } else if (num > maxyx -1) {
-    return num -maxyx -1;
-  } else {
-    return num;
+/* Get number of white neighbours to a point at a map */
+int get_num_neighbours(int *map, int x, int y, int maxx, int maxy) {
+  int neighbours = 0;
+  int x2, y2;
+
+  for (y2 = y -1; y2 <= y +1; ++y2) {
+    for (x2 = x -1; x2 <= x +1; ++x2) {
+      if (0 <= y2 && y2 <= maxy &&
+          0 <= x2 && x2 <= maxx &&
+          !(x2 == x && y2 == y) &&
+          map[y2 * maxx + x2] == 1) {
+        ++neighbours;
+      }
+    }
+  }
+  return neighbours;
+}
+
+/* Generate the next iteration in the map */
+void evolve(int *mapfrom, int *mapto, int maxx, int maxy) {
+  int x, y;
+
+  for (y = 0; y < maxy; ++y) {
+    for (x = 0; x < maxx; ++x) {
+      int neighbours = get_num_neighbours(mapfrom, x, y, maxx, maxy);
+      if (mapfrom[y * maxx + x] == 0) {
+        if (neighbours == 3) {
+          mapto[y * maxx + x] = 1;
+          continue;
+        }
+
+      } else if (neighbours == 2 || neighbours == 3) {
+        mapto[y * maxx + x] = 1;
+        continue;
+      }
+
+      mapto[y * maxx + x] = 0;
+    }
   }
 }
 
-void evolve(int **mapfrom, int **mapto, int maxx, int maxy) {
-  int maxyx = maxx * maxy;
+void get_screen_size_or_exit(int argc, char *argv[], int *maxx, int *maxy) {
+  if (argc != 3) {
+    endwin();
+    fprintf(stderr, "Usage: %s <width> <height>\n", argv[0]);
+    exit(1);
+  }
 
-  for (int i = 0, *mappf = mapfrom[0], *mappt = mapto[0];
-       i < maxyx; i++, mappf++, mappt++) {
-    int nabo = 0;
+  *maxx = atoi(argv[1]);
+  *maxy = atoi(argv[2]);
 
-    if (*(mapfrom[0] + wrap_around(i -maxx -1, maxyx)) == 1) nabo++;
-    if (*(mapfrom[0] + wrap_around(i -maxx, maxyx)) == 1) nabo++;
-    if (*(mapfrom[0] + wrap_around(i -maxx +1, maxyx)) == 1) nabo++;
-    if (*(mapfrom[0] + wrap_around(i -1, maxyx)) == 1) nabo++;
-    if (*(mapfrom[0] + wrap_around(i +1, maxyx)) == 1) nabo++;
-    if (*(mapfrom[0] + wrap_around(i +maxx -1, maxyx)) == 1) nabo++;
-    if (*(mapfrom[0] + wrap_around(i +maxx, maxyx)) == 1) nabo++;
-    if (*(mapfrom[0] + wrap_around(i +maxx +1, maxyx)) == 1) nabo++;
+  if (0 >= *maxx || *maxx >= getmaxx(stdscr)) {
+    endwin();
+    fprintf(stderr, "Error: width must be between 1 and %d\n",
+            getmaxx(stdscr) -1);
+    exit(1);
+  } else if (0 >= *maxy || *maxy >= getmaxy(stdscr)) {
+    endwin();
+    fprintf(stderr, "Error: height must be between 1 and %d\n",
+            getmaxy(stdscr) -1);
+    exit(1);
+  }
+}
 
-    if (*mappf == 0 && nabo == 3) {
-      *mappt = 1;
-    } else if (*mappf == 1 && (nabo == 2 || nabo == 3)) {
-      *mappt = 1;
-    } else {
-      *mappt = 0;
-    }
+void init_game_maps_or_exit(int **stdmap, int **auxmap, int maxx, int maxy) {
+  int i;
+
+  if ((*stdmap = malloc(sizeof *stdmap * maxx * maxy)) == NULL ||
+      (*auxmap = malloc(sizeof *stdmap * maxx * maxy)) == NULL)
+  {
+    endwin();
+    fprintf(stderr, "Virtual memory exceeded!\n");
+    exit(1);
+  }
+
+  srand(time(NULL));
+  for (i = maxx * maxy -1; i >= 0; --i) {
+    (*stdmap)[i] = rand() % 5 == 1;
   }
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 3) {
-    printf("Usage: %s <width> <height>\n", argv[0]);
-    return 1;
-  }
-
-  srand(time(NULL));
-  initscr();
-  curs_set(0);
   int maxy, maxx;
-  getmaxyx(stdscr, maxy, maxx);
-  int tmp_maxx = atoi(argv[1]);
-  int tmp_maxy = atoi(argv[2]);
-
-  /* If user gives strange width/height, we'll just set it to max */
-  if (0 < tmp_maxx && tmp_maxx < --maxx) {
-    maxx = tmp_maxx;
-  }
-  if (0 < tmp_maxy && tmp_maxy < --maxy) {
-    maxy = tmp_maxy;
-  }
-
-  /* Init random map: */
   int *stdmap = NULL;
   int *auxmap = NULL;
-  if (init_random_map(&stdmap, maxx*maxy) != 0 ||
-      init_random_map(&auxmap, maxx*maxy) != 0) {
-    return 1;
-  }
 
-  int err = draw_screen(&stdmap, maxx, maxy);
+  /* Init curses */
+  initscr();
+  curs_set(0);
 
+  /* Parse screen size */
+  get_screen_size_or_exit(argc, argv, &maxx, &maxy);
+
+  /* Init the rest */
+  init_game_maps_or_exit(&stdmap, &auxmap, maxx, maxy);
+
+  /* Main */
   timeout(100);
-  int i = 0;
-  for (int c = getch(); c != 'q'; c = getch()) {
-    i += 1;
-    int *mapp1 = i % 2 ? stdmap : auxmap;
-    int *mapp2 = i % 2 ? auxmap : stdmap;
-    evolve(&mapp2, &mapp1, maxx, maxy);
-    err += draw_screen(&mapp1, maxx, maxy);
+  while (getch() != 'q') {
+    draw_screen(stdmap, maxx, maxy);
+    evolve(stdmap, auxmap, maxx, maxy);
+    swap(&stdmap, &auxmap);
   }
 
+  /* Clean up and exit */
   endwin();
   free(stdmap);
   free(auxmap);
-  printf("Maxx: %d, maxy: %d\n", maxx, maxy);
-  printf("Errors: %d\n", err);
   return 0;
 }
 
