@@ -44,7 +44,8 @@ def shellcheck shellcode
             "Host: www.shellcheck.net\r\n" +
             "Connection: close\r\n" +
             "Content-Length: #{transfer_code.size}\r\n" +
-            "Content-Type: application/x-www-form-urlencoded\r\n\r\n" +
+            "Content-Type: application/x-www-form-urlencoded\r\n" +
+            "User-Agent: ShellCheck (https://github.com/lollek/scripts-and-stuff)\r\n\r\n" +
             transfer_code
 
   TCPSocket.open "shellcheck.net", 80 do |socket|
