@@ -5,7 +5,9 @@ require 'socket'
 def send_receive_data hostname, port, content
   TCPSocket.open hostname, port do |socket|
     socket.puts content
-    puts socket.gets
+    while data = socket.gets
+      puts data
+    end
   end
 end
 
