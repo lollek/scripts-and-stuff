@@ -21,9 +21,7 @@ def shellcheck_explain(shellcode, data)
          "^-- #{issue["message"]}\033[0m"
   end
 
-  while not shellcode.empty?
-    puts shellcode.shift
-  end
+  puts shellcode.join "\n" unless shellcode.empty?
 end
 
 def shellcheck shellcode
