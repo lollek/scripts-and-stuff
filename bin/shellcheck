@@ -1,0 +1,75 @@
+#! /usr/bin/env ruby
+
+require 'cgi'
+require 'socket'
+require 'json'
+
+def shellcheck_explain(shellcode, data)
+  def print_color(text, type)
+    case type
+    when :error then print "\033[1;31m"
+    when :warning then print "\033[1;33m"
+    when :info then print "\033[1;36m"
+    else
+      puts "strange type '#{data.to_s}' received!"
+      exit 1
+    end
+    puts "#{text}\033[0m"
+  end
+
+  shellcode = shellcode.split "\n"
+  current_line = 0
+  next_line = nil
+  data.each do |issue|
+    next_line = issue["line"]
+    while next_line > current_line
+      puts shellcode.shift
+      current_line += 1
+    end
+    print_color " " * (issue["column"] -1) + "^-- #{issue["message"]}",
+                issue["level"].to_sym
+  end
+
+  while not shellcode.empty?
+    puts shellcode.shift
+  end
+end
+
+def shellcheck shellcode
+  return if shellcode.length == 0
+  escaped_code = CGI.escape shellcode
+  transfer_code = "script=#{escaped_code}"
+
+  request = "POST /shellcheck.php HTTP/1.1\r\n" +
+            "Host: www.shellcheck.net\r\n" +
+            "Connection: close\r\n" +
+            "Content-Length: #{transfer_code.size}\r\n" +
+            "Content-Type: application/x-www-form-urlencoded\r\n\r\n" +
+            transfer_code
+
+  TCPSocket.open "shellcheck.net", 80 do |socket|
+    socket.puts request
+    return_next = false
+    while data = socket.gets
+      if return_next
+        return shellcheck_explain shellcode, JSON.parse(data)
+      elsif data == "\r\n"
+        return_next = true
+      end
+    end
+  end
+end
+
+if __FILE__ == $0
+  if ARGV.length == 0
+    shellcheck $stdin.read
+  elsif ARGV.length == 1
+    begin
+      shellcheck File.read(ARGV[0])
+    rescue => e
+      $stderr.puts e
+    end
+  else
+    $stderr.puts "Usage: #{$0} FILE\n\nIf no FILE is given, data is read from stdin"
+  end
+end
