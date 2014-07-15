@@ -5,29 +5,20 @@ require 'socket'
 require 'json'
 
 def shellcheck_explain(shellcode, data)
-  def print_color(text, type)
-    case type
-    when :error then print "\033[1;31m"
-    when :warning then print "\033[1;33m"
-    when :info then print "\033[1;36m"
-    else
-      puts "strange type '#{data.to_s}' received!"
-      exit 1
-    end
-    puts "#{text}\033[0m"
-  end
+  color = {"error" => "\033[1;31m",
+           "warning" => "\033[1;33m",
+           "info" => "\033[1;36m" }
 
   shellcode = shellcode.split "\n"
   current_line = 0
-  next_line = nil
   data.each do |issue|
-    next_line = issue["line"]
-    while next_line > current_line
+    while issue["line"] > current_line
       puts shellcode.shift
       current_line += 1
     end
-    print_color " " * (issue["column"] -1) + "^-- #{issue["message"]}",
-                issue["level"].to_sym
+    puts color[issue["level"]] +
+         " " * (issue["column"] -1) +
+         "^-- #{issue["message"]}\033[0m"
   end
 
   while not shellcode.empty?
