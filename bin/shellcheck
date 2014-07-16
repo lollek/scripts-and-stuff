@@ -39,14 +39,9 @@ def shellcheck shellcode
 
   TCPSocket.open "shellcheck.net", 80 do |socket|
     socket.puts request
-    return_next = false
-    while data = socket.gets
-      if return_next
-        return shellcheck_explain shellcode, JSON.parse(data)
-      elsif data == "\r\n"
-        return_next = true
-      end
-    end
+    # Return the line after \r\n\r\n
+    while socket.gets != "\r\n"; end
+    return shellcheck_explain shellcode, JSON.parse(socket.gets)
   end
 end
 
