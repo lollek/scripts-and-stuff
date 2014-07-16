@@ -24,7 +24,8 @@ def main():
 
 def get_elem(root, query):
     "Shorten the getElementsByTagName thing because it's too long for my taste"
-    return root.getElementsByTagName(query).item(0).firstChild.data
+    try: return root.getElementsByTagName(query).item(0).firstChild.data
+    except: exit(0) # If this fails, there nothing to find anyways
 
 def time_to_datetime(time_string):
     """
