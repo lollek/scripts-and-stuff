@@ -7,7 +7,12 @@
 #include <unistd.h>
 #include <netdb.h>
 
-int send_receive_data(const char *hostname, const char *port, 
+/* Header */
+int send_receive_data(const char *hostname, const char *port, const char *data);
+int usage(const char *error);
+
+
+int send_receive_data(const char *hostname, const char *port,
                       const char *data) {
   struct addrinfo hints, *result;
   memset(&hints, 0, sizeof(hints));
@@ -20,7 +25,7 @@ int send_receive_data(const char *hostname, const char *port,
     return 1;
   }
 
-  int sock;
+  int sock = -1;
   for (struct addrinfo *p = result; p != NULL; p = p->ai_next) {
     sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
     if (sock == -1) {
