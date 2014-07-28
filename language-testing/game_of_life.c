@@ -2,6 +2,15 @@
 #include <time.h>
 #include <curses.h>
 
+/* Header */
+void swap(int **ptr1, int **ptr2);
+void draw_screen(int *map, int max_x, int max_y);
+int get_num_neighbours(int *map, int x, int y, int maxx, int maxy);
+void evolve(int *mapfrom, int *mapto, int maxx, int maxy);
+void get_screen_size_or_exit(int argc, char *argv[], int *maxx, int *maxy);
+void init_game_maps_or_exit(int **stdmap, int **auxmap, int maxx, int maxy);
+
+
 /* Swap pointer data with each other */
 void swap(int **ptr1, int **ptr2) {
   int *tmp = *ptr1;
@@ -98,7 +107,7 @@ void init_game_maps_or_exit(int **stdmap, int **auxmap, int maxx, int maxy) {
     exit(1);
   }
 
-  srand(time(NULL));
+  srand((unsigned)time(NULL));
   for (i = maxx * maxy -1; i >= 0; --i) {
     (*stdmap)[i] = rand() % 5 == 1;
   }
