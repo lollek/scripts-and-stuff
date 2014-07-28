@@ -1,6 +1,9 @@
-/* Compile with std=c99 */
 #include <stdio.h>
 #include <ctype.h>
+
+/* Header */
+int rot13(int c);
+
 
 /* Moves all [a-zA-Z] forward/backward 13 steps in the alphabet */
 int rot13(int c) {
