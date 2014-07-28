@@ -92,6 +92,8 @@ int main(int argc, char *argv[]) {
     close(client);
   }
 
+  /* NOT REACHED
   close(sock);
   return 0;
+  */
 }
