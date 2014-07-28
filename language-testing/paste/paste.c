@@ -2,9 +2,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void usage(char **argv) {
+/* Header */
+int usage(char **argv);
+void chomp(char *line);
+void paste(const char *filename1, const char *filename2, const char *delim);
+
+
+int usage(char **argv) {
   fprintf(stderr, "Usage: %s file1 file2 [-d DELIM]\n", argv[0]);
-  exit(1);
+  return 1;
 }
 
 /* Remove first newline (and tail) found in string */
@@ -67,7 +73,7 @@ int main(int argc, char *argv[]) {
   while ((c = getopt(argc, argv, "d:")) != -1) {
     switch (c) {
       case 'd': delim = optarg; break;
-      default: usage(argv); break;
+      default: return usage(argv);
     }
   }
 
@@ -78,13 +84,13 @@ int main(int argc, char *argv[]) {
     } else if (file2 == NULL) {
       file2 = argv[index];
     } else {
-      usage(argv);
+      return usage(argv);
     }
   }
 
   /* Check that we have everything */
   if (file1 == NULL || file2 == NULL) {
-    usage(argv);
+    return usage(argv);
   }
 
   paste(file1, file2, delim == NULL ? " " : delim);
