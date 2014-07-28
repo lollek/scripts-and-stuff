@@ -7,6 +7,11 @@
 
 #include <netdb.h>
 
+/* Header */
+int send_receive_data(const char *hostname, const char *port, const char *data);
+int usage(const char *error);
+
+
 int send_receive_data(const char *hostname, const char *port, 
                       const char *data) {
   struct addrinfo hints, *results;
