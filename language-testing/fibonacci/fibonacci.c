@@ -3,6 +3,11 @@
 #include <string.h>
 #include <assert.h>
 
+/* Header */
+unsigned long fib(int rot);
+int test(void);
+
+
 unsigned long fib(int rot) {
   unsigned long old_value = 1;
   unsigned long new_value = 0;
@@ -17,7 +22,7 @@ unsigned long fib(int rot) {
   return new_value;
 }
 
-int test() {
+int test(void) {
   puts("Starting test cases");
   assert(fib(0) == 0);
   assert(fib(1) == 1);
