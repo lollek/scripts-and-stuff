@@ -38,8 +38,13 @@ while read line; do
   # "code":N,
   # "message":"lorem ipsum"
 
-  # Find line for next message
-  [[ $line =~ \"line\":([[:digit:]]+) ]]
+  # Find line for next message, if this fails, we are done
+  if [[ ! $line =~ \"line\":([[:digit:]]+) ]]; then
+    while IFS= read -ru4 file_line; do
+      echo "$file_line"
+    done
+    exit 0
+  fi
   msg_line_num=${BASH_REMATCH[1]}
 
   # Print all lines in file until the "issue"
@@ -67,4 +72,3 @@ while read line; do
   # Print it out!
   echo -e "$error_msg"
 done
-
