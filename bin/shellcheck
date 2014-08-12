@@ -1,71 +1,70 @@
-#! /usr/bin/env ruby
+#! /usr/bin/env bash
+set -e
 
-require 'cgi'
-require 'socket'
-require 'json'
+file=$1
+if [[ -z $file ]]; then
+  echo "Usage: $0 FILE" >&2
+  exit 1
+elif [[ ! -r $file ]]; then
+  echo "$0: Unable to read $file" >&2
+  exit 1
+fi
 
-def shellcheck_build_request(shellcode)
-  return nil if shellcode.length == 0
-  contents = "script=#{CGI.escape shellcode}"
+# Ask the nice guy at shellcheck.net for feedback on our script
+data=$(curl \
+  --silent \
+  --user-agent "ShellCheck@github.com/lollek/scripts-and-stuff" \
+  --data-urlencode "script@$file" \
+  "http://www.shellcheck.net/shellcheck.php")
 
-  "POST /shellcheck.php HTTP/1.1\r\n" \
-  "Host: www.shellcheck.net\r\n" \
-  "Connection: close\r\n" \
-  "Content-Length: #{contents.size}\r\n" \
-  "Content-Type: application/x-www-form-urlencoded\r\n" \
-  'User-Agent: ShellCheck ' \
-  "(https://github.com/lollek/scripts-and-stuff)\r\n\r\n" +
-  contents
-end
+# No issues? Grand!
+if [[ $data == '[]' ]]; then
+  echo "No errors reported!"
+  exit 0
+fi
 
-def shellcheck_output(text, level, indentation)
-  color = { 'error' => "\033[1;31m",
-            'warning' => "\033[1;33m",
-            'info' => "\033[1;36m",
-            'normal' => "\033[0m" }
-  puts color[level] + ' ' * (indentation - 1) + "^-- #{text}" + color['normal']
-end
+# Open script file so we can iterate over it
+exec 4<"$file"
+file_line_num=0
 
-def shellcheck_explain(shellcode, data)
-  current_line = 0
+# Data is formatted like this: [{asd},{asd},...],
+# so lets changed each into a line
+sed -re 's:\[?\{([^}]+)\}(,|\])?:\1\n:g' <<<"$data" |
+while read line; do
+  # Now it's formatted like this:
+  # "line":N,
+  # "column":N,
+  # "level":"style/info/warning/error",
+  # "code":N,
+  # "message":"lorem ipsum"
 
-  data.each do |issue|
-    while issue['line'] > current_line
-      puts shellcode.shift
-      current_line += 1
-    end
-    shellcheck_output issue['message'], issue['level'], issue['column']
-  end
+  # Find line for next message
+  [[ $line =~ \"line\":([[:digit:]]+) ]]
+  msg_line_num=${BASH_REMATCH[1]}
 
-  puts shellcode.join("\n") unless shellcode.empty?
-end
+  # Print all lines in file until the "issue"
+  while [[ $file_line_num -lt $msg_line_num ]]; do
+    IFS= read -ru4 file_line && echo "$file_line" || exit 0
+    ! ((file_line_num++))
+  done
 
-def shellcheck(shellcode)
-  request = shellcheck_build_request shellcode
-  return if request.nil?
+  # Build the error message
+  error_msg=
+  [[ $line =~ \"column\":([[:digit:]]+) ]]
+  for ((i=0; i < BASH_REMATCH[1]; ++i)); do
+    error_msg="$error_msg "
+  done
+  [[ $line =~ \"level\":\"([^\"]+)\" ]]
+  case ${BASH_REMATCH[1]} in
+    "error")   error_msg="$error_msg\033[1;31m";;
+    "style")   error_msg="$error_msg\033[1;34m";;
+    "warning") error_msg="$error_msg\033[1;33m";;
+    "info")    error_msg="$error_msg\033[1;36m";;
+  esac
+  [[ $line =~ \"message\":\"([^\"]+)\" ]]
+  error_msg="$error_msg^-- ${BASH_REMATCH[1]}\033[0m"
 
-  returned_data =
-    TCPSocket.open 'shellcheck.net', 80 do |socket|
-      socket.puts request
-      # We want the line after the \r\n\r\n
-      while socket.gets != "\r\n"; end
-      socket.gets
-    end
+  # Print it out!
+  echo -e "$error_msg"
+done
 
-  shellcheck_explain shellcode.split("\n"), JSON.parse(returned_data)
-end
-
-if __FILE__ == $PROGRAM_NAME
-  if ARGV.length == 0
-    shellcheck $stdin.read
-  elsif ARGV.length == 1 && ARGV[0][0] != '-'
-    begin
-      shellcheck File.read(ARGV[0])
-    rescue => e
-      $stderr.puts e
-    end
-  else
-    $stderr.puts "Usage: #{$PROGRAM_NAME} FILE\n\n" \
-                 'If no FILE is given, data is read from stdin'
-  end
-end
