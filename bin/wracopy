@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env perl
 # Created 01/01/14
 # A very basic wrapper for running a script before a ssh/scp/rsync
 
@@ -19,54 +19,45 @@
 #
 # Then run it with wrassh <options> google
 
-wracopy()
-{
-  local hostname
+use strict;
+use warnings;
 
-  if [[ ($_tool == ssh || $_tool == mosh) && "$@" =~ [[:alnum:].]+ ]]; then
-    hostname=$BASH_REMATCH
-  elif [[ "$@" =~ [[:alnum:].]+: ]]; then
-    hostname=${BASH_REMATCH%:}
-  else
-    echo "$(basename $0): no hostname found" >&2
-    exit 1
-  fi
+my $prog_name;
+my $hostname;
 
-  # Find host in .ssh/config and exec the command
-  local handle_this=0
-  while IFS= read -r line; do
-    if [[ $line =~ ^Host[[:space:]]+$hostname[[:space:]]*$ ]]; then
-      handle_this=1
-    elif [[ $handle_this == 1 && $line =~ ^[[:space:]] ]]; then
-      local command=${line##*\#\!Script }
-      if [[ ! $command =~ ^[[:space:]]+ ]]; then
-        echo "Executing $command"
-        $command
-        break
-      fi
-    else
-      handle_this=0
-    fi
-  done < ~/.ssh/config
+# Check what type of prog we are dealing with
+if ($0 =~ /(ssh|mosh)/) {
+  $prog_name = $1;
+  $hostname = (grep {/^[\w.]+$/} @ARGV)[0];
 
-  exec $_tool "$@"
+} elsif ($0 =~ /(scp|rsync)/) {
+  $prog_name = $1;
+  $hostname = (grep {/^[\w.]+(?=:$)/} @ARGV)[0];
+
+} else {
+  die "$0: Bad filename!\n";
+}
+die "$0: No hostname found\n" unless defined $hostname;
+
+# Find host in .ssh/config and exec any command found
+open FILE, "<", <"~/.ssh/config">
+  or die "$!\n";
+
+my $do_exec = 0;
+while (<FILE>) {
+  # #!Script can be in either "Host $hostname" or "Host *"
+  if ($_ =~ /^Host\s+(?:$hostname|\*)\s*$/) {
+    $do_exec = 1;
+  } elsif ($do_exec && $_ =~ /^\s+/) {
+    if ($_ =~ /^\s+#!Script\s(.*)$/) {
+      system(split(" ", $1));
+    }
+  } else {
+    $do_exec = 0;
+  }
 }
 
-_tool=false
-case $(basename "$0") in
-  *scp*) _tool=scp ;;
-  *sync*) _tool=rsync ;;
-  *ssh*) _tool=ssh ;;
-  *mosh*) _tool=mosh ;;
-  *)
-    echo "$0: Bad filename!" >&2
-    exit 1
-    ;;
-esac
+close(FILE);
 
-if [[ ! -z $1 ]]; then
-  wracopy "$@"
-else
-  ($_tool 2>&1 | sed "s/$_tool/$(basename "$0")/g" >&2)
-  exit 1
-fi
+exec "$prog_name @ARGV";
+
