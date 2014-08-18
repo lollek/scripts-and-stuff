@@ -17,10 +17,14 @@
 #   User sshuser
 #   #!Script echo hello world
 #
-# Then run it with wrassh <options> google
+# Then symlink this file with the name of the application
+# e.g. ssh or ssh! or ssh_wrapper
+# Then run it with ssh <options> google
 
 use strict;
 use warnings;
+
+my $prefix = "/usr/bin";
 
 my $prog_name;
 my $hostname;
@@ -61,5 +65,5 @@ while (<FILE>) {
 
 close(FILE);
 
-exec "$prog_name @ARGV";
+exec "$prefix/$prog_name @ARGV";
 
