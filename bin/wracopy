@@ -48,10 +48,12 @@ while (<FILE>) {
   # #!Script can be in either "Host $hostname" or "Host *"
   if ($_ =~ /^Host\s+(?:$hostname|\*)\s*$/) {
     $do_exec = 1;
+
   } elsif ($do_exec && $_ =~ /^\s+/) {
     if ($_ =~ /^\s+#!Script\s(.*)$/) {
       system(split(" ", $1));
     }
+
   } else {
     $do_exec = 0;
   }
