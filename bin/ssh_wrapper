@@ -33,11 +33,11 @@ shift(@ARGV);
 # Check what type of prog we are dealing with
 if ($progname eq "ssh" ||
     $progname eq "mosh") {
-  $hostname = (grep {/^[\w.]+$/} @ARGV)[0];
+  $hostname = (grep {/^[\w.-]+$/} @ARGV)[0];
 
 } elsif ($progname eq "scp" ||
          $progname eq "rsync") {
-  $hostname = (split(":", (grep {/^[\w.]+(?=:)/} @ARGV)[0]))[0];
+  $hostname = (split(":", (grep {/^[\w.-]+(?=:)/} @ARGV)[0]))[0];
 
 } else {
   die "$0: Bad filename!\n";
