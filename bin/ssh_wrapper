@@ -66,5 +66,6 @@ while (<FILE>) {
 
 close(FILE);
 
+@ARGV = map { "'$_'" } @ARGV;
 exec "$progname @ARGV";
 
