@@ -1,5 +1,10 @@
 #! /usr/bin/env perl
 
+use strict;
+use warnings;
+
+use File::Basename;
+
 my $JAILDIR = "/srv/http";
 
 sub echorun {
@@ -7,40 +12,76 @@ sub echorun {
   system($_[0]) if !$<;
 }
 
-print "\033[1;33mSynchronizing folders\033[0m\n";
-my @dirs = ("/usr/share/nginx/", "/var/lib/nginx");
-foreach (@dirs) {
+sub copydir {
+  &echorun("mkdir -p $JAILDIR$_") unless (-d "$JAILDIR$_");
   &echorun("rsync -r $_ $JAILDIR$_");
+}
+
+sub copyfile {
+  my $dirname = dirname($_);
+  &echorun("mkdir -p $JAILDIR$dirname") unless (-d "$JAILDIR$dirname");
+  &echorun("rsync $_ $JAILDIR$_");
+}
+
+sub copylink {
+  my $dirname = dirname($1);
+  &echorun("mkdir -p $JAILDIR$dirname") unless (-d "$JAILDIR$dirname");
+  &echorun("rsync -L $1 $JAILDIR$1");
+}
+
+sub linklink {
+  my $dirname = dirname($_);
+  &echorun("mkdir -p $JAILDIR$dirname") unless (-d "$JAILDIR$dirname");
+  &echorun("rsync -l $_ $JAILDIR$_");
+}
+
+print "\033[1;33mCreating Empty folders\033[0m\n";
+foreach (("/usr", "/dev", "/tmp", "/run", "/var/log/nginx")) {
+  &echorun("mkdir -p $JAILDIR$_") unless (-d "$JAILDIR$_");
+}
+
+print "\033[1;33mSynchronizing folders\033[0m\n";
+foreach (("/etc/nginx/", "/usr/share/nginx/", "/var/lib/nginx/")) {
+  &copydir($_);
 }
 print "\n";
 
 print "\033[1;33mSynchronizing bins\033[0m\n";
-my @files = ("/usr/sbin/nginx");
-foreach (@files) {
-  &echorun("rsync $_ $JAILDIR$_");
+foreach (("/usr/sbin/nginx")) {
+  &copyfile("rsync $_ $JAILDIR$_");
 }
 print "\n";
 
 print "\033[1;33mSynchronizing lib\033[0m\n";
 my @ldds = split("\n", `ldd /usr/sbin/nginx`);
 foreach (@ldds) {
-  if (m/(\/lib\/.*)\s/) {
-    &echorun("rsync -L $1 $JAILDIR$1");
+  if (m/(\/lib(64)?\/.*)\s/) {
+    &copylink($1);
   }
 }
 my @libnss = </usr/lib/libnss_*>;
 foreach(@libnss) {
-  &echorun("rsync -l $_ $JAILDIR$_");
+  &linklink($_);
 }
 print "\n";
 
-print "\033[1;33mRestricting access\033[0m\n";
-&echorun("find $JAILDIR/ -gid 0 -uid 0 -type d -print | xargs chmod -c -rw");
-&echorun("find $JAILDIR/ -gid 0 -uid 0 -type d -print | xargs chmod -c u+x");
-&echorun("chmod -c +rw $JAILDIR/tmp");
-&echorun("chmod -c +rw $JAILDIR/run");
-&echorun("find $JAILDIR/etc -gid 0 -uid 0 -type f -print | xargs chmod -c -x");
-&echorun("find $JAILDIR/ -gid 33 -uid 33 -print | xargs chmod -c o-rwx");
+print "\033[1;33mCreating nodes\033[0m\n";
+&echorun("mknod -m 0666 $JAILDIR/dev/null c 1 3");
+&echorun("mknod -m 0666 $JAILDIR/dev/random c 1 8");
+&echorun("mknod -m 0444 $JAILDIR/dev/urandom c 1 9");
+print "\n";
+
+print "\033[1;33mSetting access rights\033[0m\n";
+&echorun("find $JAILDIR -type d -name nginx -exec chown -cR http:http {} +");
+&echorun("find $JAILDIR -gid 0 -uid 0 -type d -exec chmod -c 111 {} +");
+&echorun("find $JAILDIR/etc -gid 0 -uid 0 -type f -exec chmod -c -x {} +");
+&echorun("find $JAILDIR -gid 33 -uid 33 -exec chmod -c u+rwx,o-rwx {} +");
+&echorun("chmod -c 1777 $JAILDIR/tmp");
+&echorun("chmod -c 1777 $JAILDIR/run");
 &echorun("setcap 'cap_net_bind_service=+ep' $JAILDIR/usr/sbin/nginx");
+
+print "\nNote that you should have these in fstab:\n";
+print "tmpfs   /srv/http/tmp   tmpfs   rw,noexec,relatime,size=102400k 0       0\n";
+print "tmpfs   /srv/http/run   tmpfs   rw,noexec,relatime,size=1024k   0       0\n";
 
 warn "\nNothing executed since you're not root\n" if $<;
