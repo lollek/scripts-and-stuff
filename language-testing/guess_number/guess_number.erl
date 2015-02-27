@@ -3,7 +3,13 @@
 
 guess(Solution, Num) ->
   io:format("Guess ~w: ", [Num]),
-  {ok, [Guess]} = io:fread("", "~d"),
+  case io:fread("", "~d") of
+    {ok, [Guess]} -> handle_guess(Solution, Num, Guess);
+    _ -> io:fwrite("That's not a number! "),
+         guess(Solution, Num)
+  end.
+
+handle_guess(Solution, Num, Guess) ->
   case Guess of
     Solution ->
       io:fwrite("Correct! You have won!\n"),
