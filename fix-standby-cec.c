@@ -75,39 +75,29 @@ static int grep(char const * filepath, char const * string)
 static int find_kodi_pid(void)
 {
     DIR * dir = opendir("/proc");
+    int status = 0;
     struct dirent *dirp;
+
     if (dir == NULL)
         fail0("opendir");
 
     while ((dirp = readdir(dir)) != NULL)
     {
-        int error = 0;
         char buf[BUFSIZ];
-        int i;
 
-        for (i = 0; dirp->d_name[i] != '\0'; ++i)
-            if (!isdigit(dirp->d_name[i]))
-            {
-                error = 1;
-                break;
-            }
-        if (error)
+        if (!isdigit(dirp->d_name[0]))
             continue;
 
-        strcpy(buf, "/proc/");
-        strcpy(&buf[6], dirp->d_name);
-        strcat(&buf[6], "/stat");
-
+        sprintf(buf, "/proc/%s/stat", dirp->d_name);
         if (grep(buf, "kodi"))
         {
-            int status = atoi(dirp->d_name);
-            closedir(dir);
-            return status;
+            status = atoi(dirp->d_name);
+            break;
         }
     }
 
     closedir(dir);
-    return 0;
+    return status;
 }
 
 /**
@@ -129,26 +119,21 @@ static int restart_kodi(void)
     if (pid == 0)
         return 1;
 
-    sprintf(buf, "/proc/%d", pid);
-
-    printf("killing kodi\n");
     kill(pid, SIGHUP);
 
-    printf("waiting for kodi cleanup\n");
+    /* Wait for pid to disappear */
+    sprintf(buf, "/proc/%d", pid);
     while (stat(buf, &statbuf) != -1)
         nanosleep(&shortwait, NULL);
 
-    printf("waiting for kodi to restart\n");
-    while (find_kodi_pid() == 0)
+    /* Wait for kodi to appear */
+    while (!find_kodi_pid())
         nanosleep(&shortwait, NULL);
 
-    printf("Waiting a while to make sure kodi can change the logfile\n");
+    /* Wait for kodi to rotate logfile */
     nanosleep(&longwait, NULL);
 
-    printf("Resetting watcher\n");
     reset_watcher(&inotify_fd, &inotify_watcher, path, IN_MODIFY);
-
-    printf("Done\n");
     return 0;
 }
 
@@ -163,22 +148,19 @@ static int check_for_notifications(int fd)
 {
     char const * badstr = "Recorder 1 (1): power status changed from 'standby' to 'on'";
     char buf[BUFSIZ];
-    static struct tm last_event;
+    static time_t last_event;
+    time_t now;
 
-    time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
-
+    /* Wait for event */
     read(fd, buf, BUFSIZ);
-    if (tm.tm_mday == last_event.tm_mday &&
-        tm.tm_hour == last_event.tm_hour &&
-        tm.tm_min == last_event.tm_min &&
-        tm.tm_sec == last_event.tm_sec)
+
+    now = time(NULL);
+    if (!difftime(last_event, now))
         return 0;
 
     if (grep(path, badstr))
         restart_kodi();
-    last_event = tm;
-
+    last_event = now;
     return 0;
 }
 
