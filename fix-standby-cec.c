@@ -1,3 +1,34 @@
+/**
+ * This program is a workaround for an issue with kodi on raspberry pi with
+ * HDMI-CEC on a LG-TV
+ *
+ * Issue:
+ *  Start the raspberry pi, switch source from the raspberry (e.g. to
+ *  cable) and shut down the TV. When you restart the TV and switch source back
+ *  to the raspberry pi, the remote will not work any more, and only starts
+ *  working when kodi restarts (raspi reboot is not needed)
+ *
+ * Workaround:
+ *  This program waits for the situation described above by checking data
+ *  written to the ~pi/.kodi/temp/kodi.log, if a special kind of string appears
+ *  in the log, the pi will find the kodi process and send a SIGHUP.
+ *
+ * It's possible that you might need to enable some extra logging in order for
+ * this to work. You might need to add this data to
+ * ~pi/.kodi/userdata/advancedsettings.xml:
+ * <advancedsettings>
+ *   <loglevel>1</loglevel>
+ *   <debug>
+ *     <extralogging>true</extralogging>
+ *     <setextraloglevel>64,2048,32768</setextraloglevel>
+ *     <showloginfo>false</showloginfo>
+ *   </debug>
+ * </advancedsettings>
+ *
+ * Compiled for raspberry pi here:
+ * http://iix.se/files/fix-standby-cec-armv6l-kodi
+ */
+
 #include <sys/inotify.h>
 #include <sys/types.h>
 #include <sys/stat.h>
