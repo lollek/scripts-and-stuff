@@ -99,7 +99,11 @@ static int find_kodi_pid(void)
         strcat(&buf[6], "/stat");
 
         if (grep(buf, "kodi"))
-            return atoi(dirp->d_name);
+        {
+            int status = atoi(dirp->d_name);
+            closedir(dir);
+            return status;
+        }
     }
 
     closedir(dir);
