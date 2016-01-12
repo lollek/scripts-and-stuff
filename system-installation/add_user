@@ -1,0 +1,158 @@
+#! /usr/bin/env python3
+
+import subprocess
+import shlex
+import re
+import sys
+import tempfile
+import random
+import string
+import crypt
+
+import unidecode
+
+def ldapsearch(search):
+    query = " ".join(["ldapsearch -H ldap://server.d4.sysinst.ida.liu.se",
+                      "-D cn=admin,dc=d4,dc=sysinst,dc=ida,dc=liu,dc=se",
+                      "-b dc=d4,dc=sysinst,dc=ida,dc=liu,dc=se -w mypass",
+                      search])
+    return subprocess.run(shlex.split(query), check=True,
+                          stdout=subprocess.PIPE).stdout.decode()
+
+def ldapfind(key, value):
+    return re.search("{}: ".format(key), ldapsearch("{}={}".format(key, value))) is not None
+
+def ldapadd(filename):
+    query = " ".join(["ldapadd -H ldap://server.d4.sysinst.ida.liu.se",
+                      "-D cn=admin,dc=d4,dc=sysinst,dc=ida,dc=liu,dc=se",
+                      "-w mypass -f {}".format(filename)])
+    return subprocess.run(shlex.split(query), check=True,
+                          stdout=subprocess.PIPE).stdout.decode()
+
+
+def delete_user(who):
+    dc = "dc=d4,dc=sysinst,dc=ida,dc=liu,dc=se"
+    delete = " ".join(["ldapdelete -H ldap://server.d4.sysinst.ida.liu.se",
+                       "-D cn=admin,{}".format(dc),
+                       "-w mypass"])
+    try:
+        query = " ".join([delete, "uid={},ou=People,{}".format(who, dc)])
+        subprocess.run(shlex.split(query), check=True, stdout=subprocess.PIPE)
+    except:
+        pass
+
+    try:
+        query = " ".join([delete, "cn={},ou=People,{}".format(who, dc)])
+        subprocess.run(shlex.split(query), check=True, stdout=subprocess.PIPE)
+    except:
+        pass
+
+    try:
+        query = " ".join([delete, "cn={},ou=auto.home,ou=automount,{}".format(who, dc)])
+        subprocess.run(shlex.split(query), check=True, stdout=subprocess.PIPE)
+    except:
+        pass
+
+    cmd = "ssh -i id_rsa_d4 root@server.d4.sysinst.ida.liu.se \"rm -rf /home1/{0}\"".format(who)
+    subprocess.run(shlex.split(cmd), check=True, stdout=subprocess.PIPE)
+
+    print("Deleted {}".format(who))
+
+
+def find_next_available_uid_number(uid):
+    while True:
+        if not ldapfind("uidNumber", uid):
+            return uid
+        uid += 1
+
+def make_mail_from_name(name):
+    mail = unidecode.unidecode(name.lower().replace(" ", "."))
+
+    digit = 1
+    orig_mail = mail
+    while ldapfind("mail", mail):
+        mail = "{}{}".format(orig_mail, digit)
+        digit += 1
+
+    return mail
+
+def make_password(length):
+    return "".join(random.choice(string.ascii_letters) for _ in range(length))
+
+def create_user(uid, user, name, mail):
+    template = """
+dn: uid={0},ou=People,dc=d4,dc=sysinst,dc=ida,dc=liu,dc=se
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: {0}
+uid: {0}
+uidNumber: {1}
+gidNumber: 100
+homeDirectory: /home/{0}
+loginShell: /bin/bash
+gecos: {2}
+userPassword: {{crypt}}{5}
+shadowLastChange: 0
+shadowMax: 99999
+shadowWarning: 7
+
+dn: cn={0},ou=People,dc=d4,dc=sysinst,dc=ida,dc=liu,dc=se
+objectClass: inetOrgPerson
+mail: {3}
+uid: {0}
+sn: {4}
+
+dn: cn={0},ou=auto.home,ou=automount,dc=d4,dc=sysinst,dc=ida,dc=liu,dc=se
+cn: {0}
+objectClass: top
+objectClass: automount
+automountInformation: -fstype=nfs,nfsvers=3,rw,soft,intr,exec server.d4.sysinst.ida.liu.se:/home1/&
+"""[1:]
+
+    if ldapfind("uid", user):
+        print("ERROR: User '{}' already exists".format(user), file=sys.stderr)
+    if ldapfind("uidNumber", uid):
+        print("ERROR: UID '{}' already exists".format(uid), file=sys.stderr)
+    if ldapfind("mail", mail):
+        print("ERROR: Mail address '{}' already exists".format(mail), file=sys.stderr)
+
+    surname = " ".join(name.split(" ")[1:])
+    passwd = make_password(10)
+    crypt_passwd = crypt.crypt(passwd)
+    name = unidecode.unidecode(name)
+
+    with tempfile.NamedTemporaryFile() as tmp:
+        tmp.write(template.format(user, uid, name, mail, surname, crypt_passwd).encode())
+        tmp.flush()
+        ldapadd(tmp.name)
+        print(user, passwd)
+
+    cmd = "ssh -i id_rsa_d4 root@server.d4.sysinst.ida.liu.se \"mkdir /home1/{0} && chown {1}:users /home1/{0}\"".format(user, uid)
+    subprocess.run(shlex.split(cmd), check=True, stdout=subprocess.PIPE)
+
+def main(filename, delete=False):
+    uid_number = find_next_available_uid_number(10000)
+    try:
+        with open(filename, "r") as f:
+            for line in f:
+                username, name = line.strip().split(":")
+                mail = make_mail_from_name(name)
+                if delete:
+                    delete_user(username)
+                else:
+                    create_user(uid_number, username, name, mail)
+                uid_number += 1
+    except FileNotFoundError as e:
+        print(e)
+
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        main(sys.argv[1])
+    elif len(sys.argv) == 3 and sys.argv[1] == "-d":
+        main(sys.argv[2], True)
+    else:
+        print("Usage: {0} [-d] FILE".format(sys.argv[0]))
+
+

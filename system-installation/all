@@ -1,0 +1,172 @@
+#! /usr/bin/env perl
+
+use strict;
+use warnings;
+
+use IPC::Open3;
+use Getopt::Long;
+use D4Tests;
+
+our $restart = 0;
+our $verbose = 0;
+our $run_linear = 0;
+our $target = "";
+
+my $logdir = "logs";
+my $master_log = "$logdir/master.log";
+
+sub copy_and_run {
+  my $test_file_name = $_[0];
+  my $test = $_[1];
+  my $log_suffix = $_[2];
+  my $client = $_[3];
+
+  # Copy test file
+  open3(undef, undef, *STDERR,
+    "LC_ALL=C scp -i id_rsa_d4 \'$test_file_name\' \"root\@$client.$domain:~\"")
+    or die $!;
+  wait;
+
+  my $command = "LC_ALL=C ssh -i id_rsa_d4 root\@$client.$domain " .
+      "\"./$test_file_name $client $test; rm $test_file_name\"";
+
+  if ($verbose) {
+    system($command);
+
+  } else {
+    my $logfile = "$logdir/$client.log";
+    $logfile .= $log_suffix if $log_suffix;
+    open my $log, '>', $logfile or die $!;
+
+    my $pid = open3(undef, *OUT, *ERR, $command) or die $!;
+    while (<ERR>) {
+      print $_;
+      print $log $_;
+    }
+    while (<OUT>) {
+      print $log $_;
+    }
+    waitpid $pid, 0;
+    close $log;
+  }
+}
+
+sub run_tests_linear {
+  my $test_file_name = $_[0];
+  my $test = $_[1];
+  my $log_suffix = $_[1];
+
+  foreach my $client (@clients) {
+    copy_and_run $test_file_name, $test, $log_suffix, $client->{shortname};
+  }
+}
+
+sub run_tests_parallel {
+  my $test_file_name = $_[0];
+  my $test = $_[1];
+  my $log_suffix = $_[2];
+
+  # Run each test on a fork, and reap them before returning
+  foreach my $client (@clients) {
+    next if fork;
+    copy_and_run $test_file_name, $test, $log_suffix, $client->{shortname};
+    exit 0;
+  }
+
+  while (1) {
+    last if wait == -1;
+  }
+}
+
+sub run_tests {
+  my $test_file_name = $_[0];
+  my $test = $_[1];
+  my $log_suffix = $_[2];
+
+  title "Running tests. Any errors will be displayed here" unless $verbose;
+  if ($target ne '') {
+    copy_and_run $test_file_name, $test, $log_suffix, $target;
+  } elsif ($run_linear) {
+    run_tests_linear $test_file_name, $test, $log_suffix;
+  } else {
+    run_tests_parallel $test_file_name, $test, $log_suffix;
+  }
+}
+
+sub restart_servers {
+  title "Shutting down servers";
+  system "/data/kurs/adit/bin/mln stop -p lab-2";
+
+  foreach my $client (@clients) {
+    print "Waiting for $client->{longname} to shut down...";
+    do {
+      qx/ping -c1 "$client->{ip}"/;
+      print ".";
+      sleep 1 if $? == 0;
+    } while ($? == 0);
+    print "OK\n";
+  }
+
+  title "Starting up servers";
+  system "/data/kurs/adit/bin/mln start -p lab-2 -t screen";
+
+  foreach my $client (@clients) {
+    print "Waiting for $client->{longname} to start up...";
+    do {
+      qx/ping -c1 "$client->{ip}"/;
+      print ".";
+    } while ($? != 0);
+    print "OK\n";
+  }
+
+  title "Waiting for ssh daemons";
+
+  foreach my $client (@clients) {
+    print "Waiting for $client->{longname}...";
+    do {
+      qx/nc -zn "$client->{ip}" 22/;
+      print ".";
+      sleep 1 if $? != 0;
+    } while ($? != 0);
+    print "OK\n";
+  }
+}
+
+unless (caller) {
+  my $local = 0;
+  GetOptions('local|l' => \$local,
+             'verbose|v' => \$verbose,
+             'restart|reboot|r' => \$restart,
+             'run-parallel|p' => \$run_linear,
+             'target:s' => \$target);
+  $run_linear = !$run_linear;
+
+  my $test = 'ALL';
+  if ($ARGV[0]) {
+    $test = $ARGV[0];
+  }
+
+  print "Running test '$test'\n";
+  if ($target eq '') {
+
+    $running_test = "PREP";
+    title "Make sure hosts are up";
+    foreach my $client (@clients) {
+      assert_ping $client->{longname};
+    }
+
+    test_DNS_LAN if ($test ~~ ['ALL', 'DNS']);
+    test_EMB_WAN if ($test ~~ ['ALL', 'EMB']);
+    exit         if $local;
+  }
+
+  $running_test = "ALL";
+  my $test_file_name = "D4Tests.pm";
+  run_tests $test_file_name, $test;
+  if ($restart) {
+    restart_servers;
+    run_tests $test_file_name, $test, ".2";
+  }
+  title "Tests done. See ${logdir}/*.log for full info"
+}
+
